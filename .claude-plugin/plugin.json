@@ -1,6 +1,6 @@
 {
   "name": "aria",
-  "description": "Guided music-release workflow by Patchline. From idea to smart link, grounded in your real catalog + Soundcharts + Cynite data via the aria MCP. Install once, run /aria:start.",
+  "description": "Guided music-release workflow by Patchline. From idea to smart link, grounded in your real catalog + Soundcharts + Cynite data via the aria MCP. Install once, reload plugins, then ask Claude to start Aria.",
   "version": "0.1.0-alpha",
   "author": {
     "name": "Patchline AI",

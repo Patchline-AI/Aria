@@ -199,14 +199,13 @@ Feature-flag section (R8 / PR #468). Captures whether the MCP `create_project` t
 ```markdown
 ## Patchline persistence
 
-Persistence: OFF — artifacts live on disk only. When PR #468 ships to production, re-run /aria:start to enable sync.
+Persistence: OFF — artifacts live on disk only. Project sync is not available in the public MCP yet.
 ```
 
 **Valid values:**
-- `Persistence: OFF — artifacts live on disk only. When PR #468 ships to production, re-run /aria:start to enable sync.`
-- `Persistence: ON — artifacts will sync to Patchline Projects via create_project.`
+- `Persistence: OFF — artifacts live on disk only. Project sync is not available in the public MCP yet.`
 
-**Set by:** `start` at bootstrap, based on whether `mcp__aria__create_project` is in the available-tools list. Once set at `start`, persists until the user re-runs `/aria:start` (which will re-probe).
+**Set by:** `start` at bootstrap. Current public Aria is local-workspace only; do not probe for or reference `mcp__aria__create_project` until the MCP server actually exposes project-sync tools.
 
 ---
 
@@ -435,7 +434,7 @@ current_phase = state.lines[3]  # depends on section ordering
 
 ## Patchline persistence
 
-Persistence: OFF — artifacts live on disk only. When PR #468 ships to production, re-run /aria:start to enable sync.
+Persistence: OFF — artifacts live on disk only. Project sync is not available in the public MCP yet.
 
 ---
 

@@ -59,10 +59,11 @@ cd aria
 # 2. Install locally in Claude Code
 /plugin marketplace add "file://$(pwd)"
 /plugin install aria@patchline-ai
+/reload-plugins
 
 # 3. Smoke-test
 cd /tmp && mkdir smoke && cd smoke
-/aria:start
+Start Aria for this artist: <Spotify artist URL or artist name>
 ```
 
 ### Validation + smoke tests

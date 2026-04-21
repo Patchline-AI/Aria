@@ -13,17 +13,26 @@ Aria is a Claude Code plugin that walks artists and managers through eight lifec
 # In Claude Code
 /plugin marketplace add Patchline-AI/aria
 /plugin install aria@patchline-ai
-/aria:start
+/reload-plugins
 ```
 
-That's it. The rest is conversation.
+Approve the Aria MCP server when Claude Code asks. Then start in plain language:
+
+```text
+Start Aria for this artist: <Spotify artist URL or artist name>
+```
+
+Some Claude Code builds expose plugin skills as slash aliases such as
+`/aria:start`; others load them from natural language. If a bare `/aria:start`
+returns "unknown command", use the sentence above and Claude will load the
+`aria:start` skill itself.
 
 ---
 
 ## What you get
 
 - **Eight lifecycle skills** — `creative-brief`, `vision-story`, `moodboard`, `songwriting-brief`, `release-plan`, `rollout`, `pitch-kit`, `smart-link`
-- **Two orchestrator commands** — `/aria:start` bootstraps a project, `/aria:next` advances to the next phase
+- **Two lifecycle skills** — `aria:start` bootstraps a project, `aria:next` advances to the next phase
 - **The `aria` MCP server** — 18 tools spanning catalog management, playlist targeting with Cynite sonic signatures, Soundcharts-backed artist intelligence, pitch generation, and smart-link creation
 - **A `.patchline/` workspace** — plaintext markdown artifacts you can hand-edit, version-control, or forward to a collaborator
 
@@ -35,10 +44,11 @@ If you've seen a GSD-style phased plugin — same discipline. Different verb set
 
 ## Quickstart
 
-1. `cd` into a directory where you want your project workspace (the current dir is fine — Aria never touches anything outside `.patchline/`)
-2. Run `/aria:start` — Aria asks for your artist identity and project name, creates `.patchline/` with a `PROJECT.md` and `STATE.md`
-3. Run `/aria:next` — advances to whatever phase you haven't completed. The first run produces `BRIEF.md`.
-4. Keep running `/aria:next` until your smart link is live.
+1. `cd` into a directory where you want your project workspace (the current dir is fine; Aria never touches anything outside `.patchline/`)
+2. Run `/reload-plugins` and approve the Aria MCP server if prompted
+3. Say `Start Aria for this artist: <Spotify artist URL or artist name>` — Aria asks for your artist identity and project name, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
+4. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. The first run produces `BRIEF.md`.
+5. Keep saying `Continue Aria` until your smart link is live.
 
 Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by hand if Aria misses something, then `/aria:next` regenerates the downstream outputs.
 

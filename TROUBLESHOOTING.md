@@ -45,7 +45,7 @@ if ($creds.mcpOAuth) {
 }
 ```
 
-Restart Claude Code and run any Aria command — it will re-run the browser OAuth flow from scratch. If something goes wrong, restore the backup: `mv ~/.claude/.credentials.backup.json ~/.claude/.credentials.json` (or `Move-Item` on Windows).
+Restart Claude Code, run `/reload-plugins`, approve the Aria MCP server, then ask Claude to start Aria in plain language (for example: `Start Aria for this artist: <Spotify artist URL>`). That will re-run the browser OAuth flow from scratch. If something goes wrong, restore the backup: `mv ~/.claude/.credentials.backup.json ~/.claude/.credentials.json` (or `Move-Item` on Windows).
 
 ### The browser says "Authentication Successful" but Claude Code never connects
 
@@ -53,17 +53,20 @@ Cause: the loopback callback fired but the token exchange silently dropped. This
 
 **Fix:** wait 30 seconds, restart Claude Code, run `/mcp` and reconnect `aria`. If it still fails, clear the stale credential (see above) and retry.
 
-### Cognito OAuth page redirects to a port-mismatch error
+### Cognito OAuth page shows `redirect_mismatch`
 
-Cause: Cognito does not support [RFC 8252 loopback port relaxation](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). Our proxy handles this automatically — but if you hit it, it means Claude Code is talking directly to Cognito instead of through `patchline.ai/api/mcp/v1/authorize`.
+Cause: Cognito rejected the callback URL. Aria should go through `https://www.patchline.ai/api/mcp/v1/authorize`, which rewrites Claude Code's random `http://localhost:<port>/callback` URL to Patchline's registered callback before sending you to Cognito.
 
-**Fix:** uninstall + reinstall the plugin:
+**Fix:** first update/reload the plugin and retry:
 
 ```
 /plugin uninstall aria
 /plugin marketplace add Patchline-AI/aria
 /plugin install aria@patchline-ai
+/reload-plugins
 ```
+
+Then run `/mcp`, authenticate `plugin:aria:aria`, and confirm the authorize URL starts with `https://www.patchline.ai/api/mcp/v1/authorize`. If the browser still lands on Cognito's `redirect_mismatch` page, open an issue with both URLs: the Claude Code authorize URL and the final browser URL.
 
 ## MCP tool errors
 
@@ -92,11 +95,11 @@ You probably forgot the marketplace-add step:
 /plugin install aria@patchline-ai
 ```
 
-### `/plugin list` shows `aria` but commands don't resolve
+### `/plugin list` shows `aria` but skills don't resolve
 
-Cause: plugin cache got stale after a manual update.
+Cause: plugin cache got stale after install or a manual update. Some Claude Code builds do not expose plugin skills as bare slash commands even when the skill can be loaded from natural language.
 
-**Fix:** restart Claude Code (fully quit, not just close window).
+**Fix:** run `/reload-plugins`, then use plain language: `Start Aria for this artist: <Spotify URL>`. If bare `/aria:start` says "unknown command", that is a Claude Code command-surface limitation, not a plugin install failure.
 
 ## Still stuck?
 
