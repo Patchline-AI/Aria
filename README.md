@@ -65,10 +65,6 @@ Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by ha
 - Managers coordinating releases on behalf of artists
 - Labels running structured campaigns across multiple artists
 
-It is **not** for:
-- Audio production — we don't generate or master music. See [bitwize-music-studio/claude-ai-music-skills](https://github.com/bitwize-music-studio/claude-ai-music-skills) for that.
-- General-purpose music research — if you just want tool access, point Claude directly at the MCP endpoint.
-
 ## Requirements
 
 - A [Patchline AI account](https://patchline.ai) (free tier available; some features are tier-gated post-launch)
@@ -88,23 +84,19 @@ You will never be asked for raw credentials, tokens, or AWS keys. The plugin doe
 
 ## Relationship to the Patchline web app
 
-The plugin is the **guided entry point**. The web app at [patchline.ai](https://patchline.ai) is where your Project container, storefront, billing, and social integrations live. Aria produces artifacts; the app persists and visualizes them. You'll use both.
+The plugin is the **guided workspace** for planning release artifacts inside Claude. The web app at [patchline.ai](https://patchline.ai) is where your catalog, storefront, billing, and social integrations live.
+
+Patchline also ships a Telegram companion bot for always-on mobile execution: paste links, trigger quick actions, and keep release momentum moving when you are away from your desk. Think of it as the 24/7 operator in your pocket; Aria is the structured planning room.
 
 ## License + attribution
 
-- **Plugin code: [MIT License](./LICENSE).** Open source. Fork it, extend it, write your own skills that chain on top.
+- **Plugin code: [MIT License](./LICENSE).** Open source so artists, managers, and builders can inspect how the workflow is structured and adapt it for their own teams.
 - **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v1` is Patchline-owned infrastructure, authenticated via Cognito. Requires a Patchline account. This is the standard authenticated-service pattern (AWS / OpenAI / Anthropic SDKs).
-- Plugin structure informed by [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills) — the first music-vertical Claude plugin pattern we're aware of.
+- **Inspired by the wider Claude music-tooling community.** We respect earlier experiments such as [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills); Aria takes a different route by grounding release operations in Patchline's hosted catalog, Soundcharts, Cynite, and smart-link infrastructure.
 
 ## Extending Aria
 
-Aria is designed to be composable. You can write your own SKILL.md files that chain into the lifecycle via the `prerequisites:` YAML key. Examples:
-
-- `sync-licensing-brief` that runs after `creative-brief` for artists chasing film/TV placements
-- `remix-package` that forks after `release-plan` for labels assembling remix campaigns
-- `brand-deck` for pitching to labels
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contribution flow and [`reference/state-schema.md`](./reference/state-schema.md) for the `STATE.md` contract.
+Aria is designed to be composable without exposing Patchline's full internal roadmap. If you want to contribute a lifecycle skill, start with [CONTRIBUTING.md](./CONTRIBUTING.md) and [`reference/state-schema.md`](./reference/state-schema.md) so your phase respects the `STATE.md` contract.
 
 ## Links
 
