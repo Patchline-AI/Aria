@@ -48,13 +48,21 @@ Run `ls .patchline/` via Bash. Three cases:
 
 The user either passed an argument (`$ARGUMENTS`) or didn't. Branch:
 
+**First prompt if no usable artist input was provided:** ask exactly:
+
+> Paste your Spotify artist profile URL. If you don't have one, tell me your artist name.
+
+Prefer the Spotify artist profile because `analyze_url` can parse it immediately and route to the right Patchline intelligence tools.
+
+**Do not use Web Search, Fetch, or generic web browsing to identify the artist.** If the Aria MCP tools are unavailable, pause and tell the user: "Aria MCP is not connected yet. Run `/reload-plugins`, then `/mcp` and authenticate `plugin:aria:aria`; after that paste your Spotify artist profile URL again." Do not bootstrap from web-search snippets.
+
 ### If `$ARGUMENTS` contains a Spotify URL or artist handle
 
 Call the MCP tool `mcp__aria__analyze_url` with the URL. It returns a canonical identity + `suggestedActions[]`. Use the canonical artist name and Soundcharts/Spotify IDs from the result.
 
 ### If `$ARGUMENTS` is a plain string (artist name) or empty
 
-Call `mcp__aria__search_artists` with the string (or ask the user for their artist name if empty). The result will flag `inRoster: true/false` per artist. Prefer a match where `inRoster: true` (the user's own roster) over an intel-index hit.
+Call `mcp__aria__search_artists` with the string (or ask the user for their Spotify artist profile URL / artist name if empty). The result will flag `inRoster: true/false` per artist. Prefer a match where `inRoster: true` (the user's own roster) over an intel-index hit.
 
 ### Ground the identity
 
@@ -182,8 +190,8 @@ Do not continue into the creative-brief flow automatically. Let the user invoke 
 ## Error handling
 
 - **`get_artist_intelligence` returns `found: false`** → see Step 2 "Ground the identity" branch.
-- **`analyze_url` returns no useful identity** → fall back to asking the user plainly: "What's your artist name?"
-- **`search_artists` returns empty and `intelligenceIndexAvailable: false`** → the intel index is degraded. Tell the user: "Patchline's shared artist index is temporarily unreachable. I can still bootstrap your workspace with a manual identity — what's your artist name?"
+- **`analyze_url` returns no useful identity** → fall back to asking the user plainly: "Paste your Spotify artist profile URL. If you don't have one, tell me your artist name."
+- **`search_artists` returns empty and `intelligenceIndexAvailable: false`** → the intel index is degraded. Tell the user: "Patchline's shared artist index is temporarily unreachable. I can still bootstrap your workspace with a manual identity — paste your Spotify artist profile URL, or if you don't have one, tell me your artist name."
 - **Write fails (permission error, disk full)** → surface the exact filesystem error and stop. Do not retry silently.
 - **User's MCP auth has expired** → the MCP tool call will return an auth error. Tell the user: "Your Patchline MCP session looks expired. Run `/mcp` in Claude Code to reconnect, then try `/aria:start` again."
 
@@ -213,7 +221,7 @@ You: Got it — with_label mode.
 
 ```
 User: /aria:start
-You: What's your artist name?
+You: Paste your Spotify artist profile URL. If you don't have one, tell me your artist name.
 User: Riverbend Echo
 You (calls get_artist_intelligence → found:false):
   I don't have intelligence cached for Riverbend Echo yet. Should I add
