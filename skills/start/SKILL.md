@@ -161,12 +161,15 @@ Last updated: YYYY-MM-DD by `/aria:start`
 
 Run `mkdir -p .patchline/artifacts` via Bash.
 
-## Step 5: Probe for post-#468 persistence mode
+## Step 5: Set Patchline persistence mode
 
-Call `mcp__aria__search_artists` with a noop query — actually, a better signal: call the MCP `list_tools` via introspection if your client surfaces it; otherwise just check whether `mcp__aria__create_project` is in your available-tools list for this conversation.
+Current production Aria ships as a local workspace lifecycle: it writes `.patchline/PROJECT.md`,
+`.patchline/STATE.md`, and phase artifacts on disk. Patchline project persistence is not
+part of the public MCP surface yet.
 
-- **If `create_project` is available** → append a line to `.patchline/STATE.md` under a new `## Patchline persistence` section: `Persistence: ON — artifacts will sync to Patchline Projects via create_project.` (Actual sync happens in later skills when PR #468 ships.)
-- **If not available** → append `Persistence: OFF — artifacts live on disk only. When PR #468 ships to production, re-run /aria:start to enable sync.`
+Append this line to `.patchline/STATE.md` under a new `## Patchline persistence` section:
+
+`Persistence: OFF — artifacts live on disk only. Project sync is not available in the public MCP yet.`
 
 ## Step 6: Route the user to the next step
 
@@ -237,4 +240,4 @@ You (detects existing .patchline/):
 - **Asking all the Step-3 questions at once.** One question per turn. Users type short answers; respect the rhythm.
 - **Overwriting an existing `.patchline/` silently.** Always present the three options in Step 1.
 - **Continuing into creative-brief automatically.** The user invokes `/aria:next` when they're ready. Don't bulldoze.
-- **Pretending PR #468 is already live.** If `create_project` isn't in your tool list, say so in STATE.md and move on.
+- **Pretending project persistence is already live.** Current public Aria writes local artifacts only; do not claim Patchline Project sync until the MCP explicitly exposes it.
