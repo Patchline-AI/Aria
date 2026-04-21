@@ -58,7 +58,19 @@ Prefer the Spotify artist profile because `analyze_url` can parse it immediately
 
 ### If `$ARGUMENTS` contains a Spotify URL or artist handle
 
-Call the MCP tool `mcp__aria__analyze_url` with the URL. It returns a canonical identity + `suggestedActions[]`. Use the canonical artist name and Soundcharts/Spotify IDs from the result.
+Call the MCP tool `mcp__aria__analyze_url` with the URL. Today this tool is a fast dispatcher: it returns URL type, platform ID, clean URL, and `suggestedActions[]`; it does **not** look up the artist name by itself.
+
+If the result is `type: "spotify_artist"`:
+
+1. Do **not** ask the user for the artist name again.
+2. Immediately call `mcp__aria__add_artist` with `{ "artist_url": cleanUrl }`.
+3. Use the returned canonical artist name, Patchline artist ID, Soundcharts ID, genres, and enrichment status as the identity source.
+4. Then call `mcp__aria__get_artist_intelligence` with the canonical artist name returned by `add_artist`.
+5. If enrichment is still pending and full intelligence is not available yet, continue with the canonical identity from `add_artist` and note in `PROJECT.md` that intelligence enrichment is pending.
+
+This mirrors the Telegram link-handler flow: pasted Spotify artist URL first resolves through Patchline/Soundcharts, then Aria asks project questions. Never bounce back with "what is your artist name?" after a valid Spotify artist URL.
+
+If the result is any other supported URL type, follow `suggestedActions[]` and explain the mismatch plainly: "That is a Spotify track/playlist/album URL. For project setup I need the artist profile URL, or I can continue with the artist name."
 
 ### If `$ARGUMENTS` is a plain string (artist name) or empty
 

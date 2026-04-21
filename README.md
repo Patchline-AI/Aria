@@ -16,16 +16,22 @@ Aria is a Claude Code plugin that walks artists and managers through eight lifec
 /reload-plugins
 ```
 
-Approve the Aria MCP server when Claude Code asks. Then start in plain language:
+After `/reload-plugins`, approve the Aria MCP server if Claude Code asks.
+Then run `/mcp`, choose `plugin:aria:aria`, and authenticate with your
+Patchline account. Once the server shows connected, start in plain language:
 
 ```text
-Start Aria for this artist: <Spotify artist URL or artist name>
+Start Aria for this artist: <Spotify artist profile URL>
 ```
 
 Some Claude Code builds expose plugin skills as slash aliases such as
 `/aria:start`; others load them from natural language. If a bare `/aria:start`
 returns "unknown command", use the sentence above and Claude will load the
 `aria:start` skill itself.
+
+Use the artist profile URL first, not a track, album, or playlist URL. If you
+do not have the Spotify profile URL yet, type the artist name and Aria will
+search your Patchline roster/index.
 
 ---
 
@@ -46,9 +52,10 @@ If you've seen a GSD-style phased plugin — same discipline. Different verb set
 
 1. `cd` into a directory where you want your project workspace (the current dir is fine; Aria never touches anything outside `.patchline/`)
 2. Run `/reload-plugins` and approve the Aria MCP server if prompted
-3. Say `Start Aria for this artist: <Spotify artist URL or artist name>` — Aria asks for your artist identity and project name, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
-4. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. The first run produces `BRIEF.md`.
-5. Keep saying `Continue Aria` until your smart link is live.
+3. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected
+4. Say `Start Aria for this artist: <Spotify artist profile URL>` — Aria resolves the artist through Patchline/Soundcharts, asks for your project name, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
+5. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. The first run produces `BRIEF.md`.
+6. Keep saying `Continue Aria` until your smart link is live.
 
 Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by hand if Aria misses something, then `/aria:next` regenerates the downstream outputs.
 
@@ -73,8 +80,9 @@ It is **not** for:
 The first MCP call triggers a one-time Cognito OAuth flow in your browser. Token is persisted by Claude's MCP client. If the flow stalls:
 
 1. Close the browser tab
-2. Run `/mcp` in Claude Code and reconnect `aria`
-3. Still stuck? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+2. Run `/reload-plugins`
+3. Run `/mcp` in Claude Code and reconnect `plugin:aria:aria`
+4. Still stuck? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
 
 You will never be asked for raw credentials, tokens, or AWS keys. The plugin doesn't need them.
 
