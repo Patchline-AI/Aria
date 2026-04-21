@@ -1,0 +1,44 @@
+{
+  "name": "@patchline-ai/aria",
+  "version": "0.1.0-alpha",
+  "description": "Aria by Patchline — guided music-release workflow for Claude Code. From idea to smart link.",
+  "homepage": "https://patchline.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Patchline-AI/aria.git"
+  },
+  "bugs": "https://github.com/Patchline-AI/aria/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Patchline AI",
+    "url": "https://patchline.ai"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "mcp",
+    "music",
+    "artist",
+    "release",
+    "playlist",
+    "pitch",
+    "moodboard",
+    "rollout",
+    "smart-link",
+    "patchline",
+    "aria",
+    "soundcharts",
+    "cynite"
+  ],
+  "private": true,
+  "scripts": {
+    "validate": "tsx scripts/validate.ts",
+    "smoke-test": "tsx scripts/smoke-test.ts"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0",
+    "tsx": "^4.19.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.7.0"
+  }
+}

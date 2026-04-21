@@ -1,0 +1,29 @@
+{
+  "name": "aria",
+  "description": "Guided music-release workflow by Patchline. From idea to smart link, grounded in your real catalog + Soundcharts + Cynite data via the aria MCP. Install once, run /aria:start.",
+  "version": "0.1.0-alpha",
+  "author": {
+    "name": "Patchline AI",
+    "url": "https://patchline.ai"
+  },
+  "homepage": "https://patchline.ai",
+  "repository": "https://github.com/Patchline-AI/aria",
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "keywords": [
+    "music",
+    "artist",
+    "release",
+    "playlist",
+    "pitch",
+    "moodboard",
+    "rollout",
+    "smart-link",
+    "patchline",
+    "aria",
+    "soundcharts",
+    "cynite",
+    "mcp"
+  ]
+}

@@ -1,0 +1,12 @@
+# User workspace created by /aria:start — never commit a user's project state
+.patchline/
+
+# Local dev state
+*.log
+.env
+.env.local
+
+# Node (for local validation/smoke-test scripts)
+node_modules/
+package-lock.json
+.tsconfig.tsbuildinfo

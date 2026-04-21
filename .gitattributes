@@ -1,0 +1,17 @@
+# Normalize line endings to LF across all platforms
+* text=auto eol=lf
+
+# Explicit LF for scripts and config (never converted)
+*.sh   text eol=lf
+*.ts   text eol=lf
+*.js   text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binary safeguards (if we ever add images/fonts)
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ico  binary

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Patchline AI support
+    url: https://patchline.ai
+    about: Questions about your Patchline account, billing, or the MCP service
+  - name: MCP server documentation
+    url: https://www.patchline.ai/mcp
+    about: The 18 tools exposed by the `aria` MCP server
+  - name: Claude Code plugin docs
+    url: https://docs.claude.com/en/docs/claude-code/plugins
+    about: Official docs for Claude Code plugins

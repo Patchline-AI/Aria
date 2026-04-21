@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "aria": {
+      "type": "http",
+      "url": "https://www.patchline.ai/api/mcp/v2",
+      "description": "Patchline AI MCP server — 18 tools for catalog, playlist targeting, artist intelligence, pitch generation, and smart links. OAuth via Cognito on first tool call; token persisted by the Claude MCP client.",
+      "_comment_about_auth": "Remote MCP with OAuth 2.0 / RFC 8414 metadata + RFC 9728 protected-resource metadata. No manual credentials required — Claude Code opens the browser to /auth/mcp-callback on first use."
+    }
+  }
+}
