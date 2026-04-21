@@ -135,8 +135,12 @@ async function checkMcpReachable() {
     // all mean the server is alive. Connection refused / DNS failure throws.
     if (res.status === 200 || res.status === 401 || res.status === 400 || res.status === 405) {
       record(name, 'pass', `HTTP ${res.status} from ${MCP_URL}`)
+    } else if (res.status === 404) {
+      // 404 is terminal — the configured URL is not deployed. New installs
+      // cannot use this MCP server. Never silence this as a warning.
+      record(name, 'fail', `HTTP 404 from ${MCP_URL} — endpoint is not deployed`)
     } else {
-      record(name, 'warn', `HTTP ${res.status} from ${MCP_URL} (expected 200/401/400/405)`)
+      record(name, 'fail', `HTTP ${res.status} from ${MCP_URL} (expected 200/401/400/405)`)
     }
   } catch (e: any) {
     record(name, 'fail', `${e.name || 'Error'}: ${e.message} (URL: ${MCP_URL})`)
