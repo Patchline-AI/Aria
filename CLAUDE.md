@@ -58,6 +58,15 @@ The `aria` MCP uses OAuth via Cognito. On first tool invocation Claude Code open
 
 Never ask the user for a JWT, Cognito token, or AWS credentials. The plugin does not need them.
 
+## Versioning doctrine
+
+Two orthogonal version axes. Do not conflate them.
+
+1. **URL contract version** (`/api/mcp/v1`) — the MCP wire protocol Patchline exposes. Bumped only on a breaking change to tool schemas, metadata endpoints, or the OAuth proxy contract. Prior art: Stripe `/v1/`, GitHub `/v3/` — stable for years at a time. A `v2` only appears when we ship a parallel URL that cannot be served by the same code path as `v1`.
+2. **Plugin version** (`plugin/.claude-plugin/plugin.json#version`) — the SKILL.md authoring, prompts, and workspace conventions. Bumped per Keep-a-Changelog rules for every user-visible plugin change. Today: `0.1.0-alpha`. A plugin on `v1` of the URL can ship `1.x.x`, `2.x.x`, `3.x.x` freely — skills evolve independently of the MCP contract.
+
+The plugin is the authoritative client for the `v1` URL. If `/v1` ever breaks, we bump the URL (never reuse `/v1` for a breaking change) and ship a plugin major version that targets the new URL.
+
 ## What NOT to do
 
 - **Do not produce audio, master tracks, or generate Suno prompts.** That is out of scope. Point the user at [bitwize-music-studio/claude-ai-music-skills](https://github.com/bitwize-music-studio/claude-ai-music-skills) if they need that.

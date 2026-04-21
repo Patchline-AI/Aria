@@ -14,7 +14,7 @@
  *   npx tsx scripts/smoke-test.ts
  *
  * Env:
- *   PATCHLINE_MCP_URL    — override the MCP URL (default: https://www.patchline.ai/api/mcp/v2)
+ *   PATCHLINE_MCP_URL    — override the MCP URL (default: https://www.patchline.ai/api/mcp/v1)
  *   PATCHLINE_MCP_TOKEN  — optional OAuth bearer token; enables tools/list check
  *
  * Exit codes:
@@ -38,7 +38,7 @@ const PLUGIN_ROOT = path.resolve(SCRIPT_DIR, '..')
 const MCP_JSON = path.join(PLUGIN_ROOT, '.mcp.json')
 const SKILLS_DIR = path.join(PLUGIN_ROOT, 'skills')
 
-const DEFAULT_MCP_URL = 'https://www.patchline.ai/api/mcp/v2'
+const DEFAULT_MCP_URL = 'https://www.patchline.ai/api/mcp/v1'
 const MCP_URL = process.env.PATCHLINE_MCP_URL || DEFAULT_MCP_URL
 const MCP_TOKEN = process.env.PATCHLINE_MCP_TOKEN || ''
 const FETCH_TIMEOUT_MS = 10_000
@@ -163,8 +163,8 @@ async function checkProtectedResourceMetadata() {
   const candidates = [
     // RFC 9728 canonical well-known
     `${origin}/.well-known/oauth-protected-resource`,
-    // Per-resource well-known (Patchline may serve one scoped to /api/mcp/v2)
-    `${origin}/.well-known/oauth-protected-resource/api/mcp/v2`,
+    // Per-resource well-known (Patchline may serve one scoped to /api/mcp/v1)
+    `${origin}/.well-known/oauth-protected-resource/api/mcp/v1`,
   ]
 
   let lastError = ''

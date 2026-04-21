@@ -55,7 +55,7 @@ Cause: the loopback callback fired but the token exchange silently dropped. This
 
 ### Cognito OAuth page redirects to a port-mismatch error
 
-Cause: Cognito does not support [RFC 8252 loopback port relaxation](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). Our proxy handles this automatically — but if you hit it, it means Claude Code is talking directly to Cognito instead of through `patchline.ai/api/mcp/v2/authorize`.
+Cause: Cognito does not support [RFC 8252 loopback port relaxation](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). Our proxy handles this automatically — but if you hit it, it means Claude Code is talking directly to Cognito instead of through `patchline.ai/api/mcp/v1/authorize`.
 
 **Fix:** uninstall + reinstall the plugin:
 

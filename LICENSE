@@ -26,7 +26,7 @@ Note on the MCP service:
 
 This MIT license covers only the plugin source code in this directory
 (SKILL.md files, plugin manifest, commands, documentation). The
-`aria` MCP server at https://www.patchline.ai/api/mcp/v2 is a
+`aria` MCP server at https://www.patchline.ai/api/mcp/v1 is a
 Patchline-hosted proprietary service. Calling it requires a Patchline AI
 account and Cognito OAuth authentication. Forking this plugin does not
 grant access to the MCP service; you'll need a Patchline account just

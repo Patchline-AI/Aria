@@ -75,7 +75,7 @@ The plugin is the **guided entry point**. The web app at [patchline.ai](https://
 ## License + attribution
 
 - **Plugin code: [MIT License](./LICENSE).** Open source. Fork it, extend it, write your own skills that chain on top.
-- **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v2` is Patchline-owned infrastructure, authenticated via Cognito. Requires a Patchline account. This is the standard authenticated-service pattern (AWS / OpenAI / Anthropic SDKs).
+- **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v1` is Patchline-owned infrastructure, authenticated via Cognito. Requires a Patchline account. This is the standard authenticated-service pattern (AWS / OpenAI / Anthropic SDKs).
 - Plugin structure informed by [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills) — the first music-vertical Claude plugin pattern we're aware of.
 
 ## Extending Aria
