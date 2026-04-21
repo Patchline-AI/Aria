@@ -10,23 +10,42 @@ Cause: a stale / empty OAuth credential in Claude's MCP client state is short-ci
 
 **Fix:**
 
+Quit Claude Code fully first (not just close the window), then run the matching command for your OS. Both scripts back up your credentials to `.credentials.backup.json` and remove any MCP OAuth entry pointing at Patchline — regardless of whether the server is registered as `aria` or the legacy `patchline-aria`.
+
 ```bash
 # macOS / Linux
-jq 'if .mcpOAuth then .mcpOAuth |= with_entries(select(.key | test("patchline-aria") | not)) else . end' \
-  ~/.claude/.credentials.json > ~/.claude/.credentials.new.json \
-  && mv ~/.claude/.credentials.new.json ~/.claude/.credentials.json
+cp ~/.claude/.credentials.json ~/.claude/.credentials.backup.json && \
+  jq 'if .mcpOAuth then
+        .mcpOAuth |= with_entries(
+          select(
+            (.key | test("^(aria|patchline-aria)\\|") | not) and
+            (.value.serverUrl // "" | test("patchline\\.ai/api/mcp") | not)
+          )
+        )
+      else . end' \
+    ~/.claude/.credentials.backup.json > ~/.claude/.credentials.json
+```
 
+```powershell
 # Windows PowerShell
-$creds = Get-Content "$env:USERPROFILE\.claude\.credentials.json" | ConvertFrom-Json
+$path = "$env:USERPROFILE\.claude\.credentials.json"
+Copy-Item $path "$path.backup.json" -Force
+$creds = Get-Content $path -Raw | ConvertFrom-Json
 if ($creds.mcpOAuth) {
-    $creds.mcpOAuth.PSObject.Properties.Name |
-        Where-Object { $_ -match 'patchline-aria' } |
-        ForEach-Object { $creds.mcpOAuth.PSObject.Properties.Remove($_) }
-    $creds | ConvertTo-Json -Depth 20 | Set-Content "$env:USERPROFILE\.claude\.credentials.json"
+    $toRemove = $creds.mcpOAuth.PSObject.Properties |
+        Where-Object {
+            $_.Name -match '^(aria|patchline-aria)\|' -or
+            ($_.Value.serverUrl -and $_.Value.serverUrl -match 'patchline\.ai/api/mcp')
+        } |
+        ForEach-Object { $_.Name }
+    foreach ($name in $toRemove) {
+        $creds.mcpOAuth.PSObject.Properties.Remove($name)
+    }
+    $creds | ConvertTo-Json -Depth 20 | Set-Content $path -Encoding UTF8
 }
 ```
 
-Then restart Claude Code and run any Aria command — it will re-run the browser OAuth flow from scratch.
+Restart Claude Code and run any Aria command — it will re-run the browser OAuth flow from scratch. If something goes wrong, restore the backup: `mv ~/.claude/.credentials.backup.json ~/.claude/.credentials.json` (or `Move-Item` on Windows).
 
 ### The browser says "Authentication Successful" but Claude Code never connects
 
