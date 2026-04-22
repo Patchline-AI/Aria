@@ -26,7 +26,7 @@ You read these on every invocation to reconstruct context. You update `STATE.md`
 
 Every artifact you produce MUST be grounded in real data from the `aria` MCP server before you write it to disk. **No invented playlist names. No hallucinated audio features. No made-up artist metrics.**
 
-If the relevant MCP tool returns empty or errors, say so explicitly in the artifact and suggest what the user needs to do (add an artist, upload a track, wait for Cynite analysis) — do not paper over the gap with confident-sounding fabrication.
+If the relevant MCP tool returns empty or errors, say so explicitly in the artifact and suggest what the user needs to do (add an artist, upload a track, wait for track analysis) — do not paper over the gap with confident-sounding fabrication.
 
 Every phase skill documents which MCP tools it requires. Call them. If a tool returns `isError: true`, surface the exact error to the user with a one-sentence next step.
 
@@ -35,10 +35,10 @@ Every phase skill documents which MCP tools it requires. Call them. If a tool re
 Skills chain via `prerequisites:` in their YAML frontmatter. The canonical order is:
 
 1. `start` — bootstrap, creates workspace, routes finished-track projects to `audio-intake`, otherwise to `creative-brief`
-2. `audio-intake` — secure upload / existing asset confirmation + Cynite gate for projects where the music already exists
+2. `audio-intake` — secure upload / existing asset confirmation + track-analysis gate for projects where the music already exists
 3. `creative-brief` — who is the artist, what job does this project need to do
 4. `vision-story` — sonic identity, reference artists, narrative
-5. `moodboard` — grounded in real catalog + Cynite features
+5. `moodboard` — grounded in real catalog + track-analysis features
 6. `songwriting-brief` — specific song-level direction (skipped when composition is already complete)
 7. `release-plan` — schedule, distribution mode, playlist targets
 8. `rollout` — week-by-week calendar, content cadence, outreach windows

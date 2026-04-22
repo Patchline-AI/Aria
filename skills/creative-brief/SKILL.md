@@ -35,10 +35,10 @@ You will:
 Use Read on these files (in order, stop at first miss):
 
 - `.patchline/PROJECT.md` — extract: artist name, project name, distribution mode, genres, career stage, monthly listeners, country, composition status, focus track asset ID
-- `.patchline/STATE.md` — confirm `Current phase: creative-brief`. Also read `Composition status`, `Focus track asset ID`, `Audio status`, and `Cynite status`. If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not creative-brief. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
+- `.patchline/STATE.md` — confirm `Current phase: creative-brief`. Also read `Composition status`, `Focus track asset ID`, `Audio status`, and `Track analysis status` (tolerate legacy `cynite_*` status values if present). If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not creative-brief. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
 - `.patchline/artifacts/BRIEF.md` — if it ALREADY exists, ask the user: "A BRIEF.md already exists. Overwrite it, or refine it in place?" Do not silently overwrite.
 
-If `Composition status` is `complete` and `Cynite status` is not `cynite_complete`, STOP. Tell the user: "You said the track exists, but audio-intake has not completed Cynite yet. Run `/aria:next` to route back to audio-intake, or `/aria:audio-intake` directly if STATE.md already points there. I won't ask you to describe the sound while Patchline can analyze it."
+If `Composition status` is `complete` and track analysis is not complete (`analysis_complete`, or legacy `cynite_complete`), STOP. Tell the user: "You said the track exists, but audio-intake has not completed track analysis yet. Run `/aria:next` to route back to audio-intake, or `/aria:audio-intake` directly if STATE.md already points there. I won't ask you to describe the sound while Patchline can analyze it."
 
 ## Step 2: Ground in artist data
 
@@ -48,7 +48,7 @@ You already have basic identity from PROJECT.md. Pull fresher context:
 
 - `mcp__aria__get_artist_intelligence` with the artist name → re-pulls current streaming metrics, social stats, genres, career stage. Use the freshest values (MCP data may have updated since `/aria:start`).
 - `mcp__aria__get_bio` with the artist name → if a cached bio exists, extract 1–2 sentences for the brief. If it returns "no cached bio", don't worry — the `creative-brief` is supposed to GENERATE a short summary; `get_bio` just gives you a head start if one exists.
-- If `Focus track asset ID` is not `pending` or `not_required`, call `mcp__aria__get_asset` with that asset ID. Capture Cynite/audio-feature summary for the Data sources section; do not turn it into a subjective sound interview.
+- If `Focus track asset ID` is not `pending` or `not_required`, call `mcp__aria__get_asset` with that asset ID. Capture track-analysis/audio-feature summary for the Data sources section; do not turn it into a subjective sound interview.
 
 ### Conditionally call
 
@@ -63,6 +63,8 @@ You already have basic identity from PROJECT.md. Pull fresher context:
 ## Step 3: Interview (3–5 focused questions)
 
 Ask questions ONE AT A TIME, not as a wall. After each answer, capture the answer in your working memory (you'll use it in Step 4). Skip any question already answered by PROJECT.md or MCP data.
+
+For finished-single projects (`Composition status: complete`), treat PROJECT.md `## Campaign intake` and AUDIO_INTAKE.md as the primary interview. Ask at most one missing-blocker follow-up before writing BRIEF.md. Examples: if release date, marketing goal, desired assets, and non-negotiables are already known, write the brief without another mini-interview; if only one critical piece is missing, ask just that one.
 
 ### The four pillars (ask about each, concisely)
 
@@ -233,6 +235,6 @@ You: That's concrete enough, moving on. 4/4 — ...
 - **Writing a "generic pop release" brief** when the artist hasn't told you it's generic or pop. Use THEIR words.
 - **Citing genres not in `get_artist_intelligence` output** — e.g. calling them "indie pop" when their profile says "house, tech-house".
 - **Padding the brief with aspirational language** ("a landmark release", "a career-defining moment"). Keep it clinical.
-- **Skipping the interview because the user seems busy.** The 4 questions are the MINIMUM — the brief without them is a data dump, not a brief.
+- **Re-asking the full interview after audio-intake already captured campaign intake.** For finished singles, use the intake and ask at most one missing-blocker follow-up.
 - **Advancing STATE.md without actually writing BRIEF.md** — check the file exists on disk before updating state.
 - **Claiming "cached Patchline bio from March 2026" in the data-sources section** when you didn't actually call `get_bio`. Be truthful about what you ran.

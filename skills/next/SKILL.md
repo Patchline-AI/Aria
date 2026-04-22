@@ -60,7 +60,7 @@ Run `ls .patchline/PROJECT.md` via Bash. Three outcomes:
 
 Use Read on these three files:
 
-- `.patchline/STATE.md` — extract: `Current phase:`, `Completed phases:`, `Composition status:`, `Distribution mode:`, `Focus track asset ID:`, `Audio status:`, `Cynite status:`
+- `.patchline/STATE.md` — extract: `Current phase:`, `Completed phases:`, `Composition status:`, `Distribution mode:`, `Focus track asset ID:`, `Audio status:`, `Track analysis status:` (also tolerate legacy `cynite_*` status values if present)
 - `.patchline/PROJECT.md` — extract: artist name, project name (you'll use these in the hand-off message)
 - `ls .patchline/artifacts/` via Bash — capture the actual list of artifact files on disk
 

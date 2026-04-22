@@ -21,7 +21,7 @@ Produce `.patchline/artifacts/PITCH_KIT.md` — the single most load-bearing cre
 You will:
 
 1. Read every prior artifact (BRIEF, VISION, MOODBOARD, RELEASE_PLAN)
-2. Extract the priority playlist targets from RELEASE_PLAN.md (stored as Spotify URLs / IDs, not Soundcharts UUIDs)
+2. Extract the priority playlist targets from RELEASE_PLAN.md (stored as Spotify URLs / IDs, not internal playlist UUIDs)
 3. Confirm the target list with the user via AskUserQuestion if the plan has more than 5 — let them narrow
 4. For EACH chosen playlist, re-pull its current state via `inspect_playlist(playlist_url: <spotify URL>)`
 5. Call `generate_pitch(artist_name, track_name, target_playlist)` — the REAL 3-arg tool — to get a base pitch, then enrich it in-session with the playlist-specific context from `inspect_playlist` output
@@ -50,7 +50,7 @@ generate_pitch(
 )
 ```
 
-Returns: a pitch draft (usually 120–180 words) as plain text. The server-side call uses real Soundcharts data (streams, audience demographics, genre) to ground the pitch.
+Returns: a pitch draft (usually 120–180 words) as plain text. The server-side call uses real streaming intelligence (streams, audience demographics, genre) to ground the pitch.
 
 **That's it.** Three string args. There is NO `playlist_id`, NO `playlist_curator`, NO `playlist_vibe_profile`, NO `reference_artists`, NO `artist_positioning` argument. Prior versions of this skill pretended those existed — they were silently dropped. Don't pass them.
 
@@ -64,7 +64,7 @@ inspect_playlist(
 )
 ```
 
-Accepts a Spotify playlist URL like `https://open.spotify.com/playlist/37i9dQZF1DX...` or a bare 22-character Spotify playlist ID. **Not a Soundcharts UUID.** RELEASE_PLAN.md stores Spotify URLs / IDs in its playlist-targets tables; forward those directly.
+Accepts a Spotify playlist URL like `https://open.spotify.com/playlist/37i9dQZF1DX...` or a bare 22-character Spotify playlist ID. **Not an internal playlist UUID.** RELEASE_PLAN.md stores Spotify URLs / IDs in its playlist-targets tables; forward those directly.
 
 Returns: `{ spotifyId, playlist: { name, type, followers, growthSummary, refreshed, typeLabel, ... }, trackSnapshot: { visible tracks, 30-day adds, unique artists, most-repeated artists }, curatorNetwork: { sibling playlists, combined follower reach }, _raw: {...} }`.
 
@@ -98,7 +98,7 @@ Use Read on (stop at first miss — missing upstream is a blocker):
 - `.patchline/STATE.md` — confirm `pitch-kit` is the next incomplete phase (not already in `Completed phases:`, and no phase after it already complete). If not, STOP: "STATE.md doesn't point at pitch-kit — it's at `<X>`. Run `/aria:next` to pick the right phase, or hand-edit STATE.md if this is intentional."
 - `.patchline/artifacts/BRIEF.md` — north-star metric, non-negotiables, audience
 - `.patchline/artifacts/VISION.md` — sonic identity, reference artists, the artist's-own-words narrative paragraph (the heart of every pitch's enrichment block)
-- `.patchline/artifacts/MOODBOARD.md` — actual catalog tracks + Cynite features (the BPM / energy / mood zone to cite)
+- `.patchline/artifacts/MOODBOARD.md` — actual catalog tracks + track-analysis features (the BPM / energy / mood zone to cite)
 - `.patchline/artifacts/RELEASE_PLAN.md` — focus track + ISRC (or Spotify track URL), release date, priority playlist targets with Spotify URLs / IDs, focus DSPs
 - `.patchline/artifacts/PITCH_KIT.md` — if it ALREADY exists, ask the user: "A PITCH_KIT.md already exists. Overwrite (re-pull every playlist, regenerate every pitch), or refine in place?" Hand-edits to pitches are valuable — don't clobber them silently.
 
@@ -197,7 +197,7 @@ Returns `{ workUuid, workName, iswc, writers: [{ uuid, name, role }], publishers
 Cases:
 
 - **Resolved** → capture `iswc`, `writers[]`, `publishers[]` for the press release's "Writers / co-writers" and "Publisher" fields.
-- **Error ("Could not resolve composition data for ...")** → normal for unreleased tracks. Soundcharts doesn't index works until the song is distributed. Use `[TBD at distribution]` placeholders in the press release. Flag in data-sources: `Work metadata for <track>: not indexed yet (typical for pre-release), placeholders used.`
+- **Error ("Could not resolve composition data for ...")** → normal for unreleased tracks. Streaming intelligence may not index works until the song is distributed. Use `[TBD at distribution]` placeholders in the press release. Flag in data-sources: `Work metadata for <track>: not indexed yet (typical for pre-release), placeholders used.`
 - **Auth error** → same STOP path as above.
 
 **Do NOT fabricate an ISRC, ISWC, writer name, or publisher.** `[TBD at distribution]` is a perfectly professional placeholder; a made-up code that fails at distribution time is a real problem.
@@ -247,7 +247,7 @@ generate_pitch(
 )
 ```
 
-The tool returns a pitch draft (usually 120–180 words). Capture it verbatim as the **base pitch**. This is the MCP-grounded core — it uses real Soundcharts streaming/demographic data server-side.
+The tool returns a pitch draft (usually 120–180 words). Capture it verbatim as the **base pitch**. This is the MCP-grounded core — it uses real streaming/demographic data server-side.
 
 **Do not invent extra arguments.** There is no `playlist_id`, `playlist_curator`, `artist_positioning`, `reference_artists`, or `playlist_vibe_profile` parameter. Passing them silently fails — the Zod schema drops them and the tool runs as if only the 3 real args were supplied. Earlier versions of this skill misled callers by pretending otherwise; every pitch in the wild that was supposedly "tailored" via those fields was actually just the base 3-arg pitch with the extra args dropped on the floor.
 
@@ -263,7 +263,7 @@ Enrichment block template (adapt phrasing per playlist — don't copy-paste):
 
 - **Every number** (follower count, 30-day adds, sibling count, combined reach) comes from `inspect_playlist` output
 - **Every cited recent-add track or artist** comes from `trackSnapshot.visibleTracks` or `trackSnapshot.mostRepeatedArtists` — NOT from training-data memory
-- **Sonic-tie language** (BPM, energy, mood) references MOODBOARD.md's Cynite features OR VISION.md's narrative — NOT invented
+- **Sonic-tie language** (BPM, energy, mood) references MOODBOARD.md's track-analysis features OR VISION.md's narrative — NOT invented
 - If `inspect_playlist` didn't return a field (e.g. no curator named on an editorial playlist), don't fabricate it — just omit that clause
 - Length: 2–4 sentences MAX. The base pitch from `generate_pitch` is the main content; the enrichment is a grounding tail
 
@@ -330,13 +330,13 @@ Use the Write tool. Structure:
 - **Submission route:** <Spotify For Artists pitch form | DM via curator handle | submission form URL from _raw | "no public submission — research curator socials">
 - **Spotify link:** https://open.spotify.com/playlist/<spotifyId>
 
-**Base pitch** (from `generate_pitch(artist_name, track_name, target_playlist)` — MCP-grounded, Soundcharts-backed):
+**Base pitch** (from `generate_pitch(artist_name, track_name, target_playlist)` — MCP-grounded and streaming-intelligence-backed):
 
 > <The exact text returned by generate_pitch. Verbatim. 120–180 words. Do NOT edit for polish — the tool already used real streaming data to ground it. If you disagree with the tone, note it in the enrichment block below rather than rewriting.>
 
 **Playlist context** (Claude-stitched from `inspect_playlist` output — every number traces to the API response above):
 
-> <2–4 sentences following the Step 5d template. Must cite real numbers (30-day adds, follower count, sibling reach) and real track/artist names from trackSnapshot. Must tie to MOODBOARD's Cynite features or VISION's narrative.>
+> <2–4 sentences following the Step 5d template. Must cite real numbers (30-day adds, follower count, sibling reach) and real track/artist names from trackSnapshot. Must tie to MOODBOARD's track-analysis features or VISION's narrative.>
 
 ---
 
@@ -589,7 +589,7 @@ You (inspect_playlist errors on 4 of 5 playlists with Lambda invocation
 ```
 You (get_work_metadata for "Midnight Oil" returns "Could not resolve
     composition data"):
-  "Midnight Oil" isn't in Soundcharts' composition database yet — normal
+  "Midnight Oil" isn't in the composition intelligence database yet — normal
   for a pre-release. The press release uses [TBD at distribution]
   placeholders for ISWC, writers, publisher. Fill those in after
   distribution when the work gets indexed.
@@ -600,7 +600,7 @@ You (get_work_metadata for "Midnight Oil" returns "Could not resolve
 ## Common mistakes (don't make these)
 
 - **Passing invented args to `generate_pitch`.** The tool accepts 3 strings: `artist_name`, `track_name`, `target_playlist`. Passing `playlist_id`, `playlist_curator`, `artist_positioning`, `reference_artists`, `playlist_vibe_profile`, `track_isrc`, `track_title` (the wrong key for track_name), or `playlist_name` (the wrong key for target_playlist) will NOT error — Zod silently strips them. The resulting pitch is the SAME as if you'd only passed the 3 real args. Prior versions of this skill pretended the extras were doing tailoring; they weren't. Match the real contract.
-- **Passing Soundcharts UUIDs to `inspect_playlist`.** The tool takes Spotify URLs or 22-char Spotify playlist IDs. A Soundcharts UUID will fail the regex and return an "Could not extract a Spotify playlist ID" error. RELEASE_PLAN.md (per the release-plan rewrite) stores Spotify URLs; forward those.
+- **Passing internal playlist UUIDs to `inspect_playlist`.** The tool takes Spotify URLs or 22-char Spotify playlist IDs. An internal UUID will fail the regex and return a "Could not extract a Spotify playlist ID" error. RELEASE_PLAN.md stores Spotify URLs; forward those.
 - **Copy-pasting the same enrichment block into every playlist subsection.** The whole point of per-playlist `inspect_playlist` calls is per-playlist context. If every playlist's "Context" paragraph reads the same, you've copied stale prose — re-read each `inspect_playlist` response and cite THAT playlist's specific 30-day adds / most-repeated artists / sibling reach.
 - **Skipping `inspect_playlist` and reusing the stale snapshot from RELEASE_PLAN.md.** Playlists change. Curators change. 30-day adds rotate weekly. Re-pull, always.
 - **Pitching to ghost playlists.** If `inspect_playlist` errors, the playlist is NOT in the pitch section — it's in the "Unreachable" section. You don't know who to pitch to if the playlist has been delisted.
@@ -609,7 +609,7 @@ You (get_work_metadata for "Midnight Oil" returns "Could not resolve
 - **Writing a fake artist quote.** Either pull a real line from BRIEF.md's interview, or flag `[TO BE PROVIDED BY ARTIST]`. PR fluff ("I've never been more excited about a release") is an obvious AI tell and gets the whole release cut from consideration.
 - **Making the bio over 120 words to sound "thorough".** Curators skim. Sync supervisors want specs. 120 words max — count them.
 - **Dropping the cold-outreach email template.** Some artists need it to email a sync supervisor by Friday. It belongs in PITCH_KIT.md regardless of whether the playlist workflow is complete.
-- **Editing the `generate_pitch` base pitch for "polish".** The tool used real Soundcharts data server-side. Rewriting loses the grounding. If a base pitch is genuinely bad (off-tone, generic-feeling), your recourse is the enrichment block — don't rewrite the base. If the artist wants a tonal shift, that's what hand-editing the file before sending is for.
+- **Editing the `generate_pitch` base pitch for "polish".** The tool used real streaming intelligence server-side. Rewriting loses the grounding. If a base pitch is genuinely bad (off-tone, generic-feeling), your recourse is the enrichment block — don't rewrite the base. If the artist wants a tonal shift, that's what hand-editing the file before sending is for.
 - **Claiming pitches were sent.** Per CLAUDE.md: the plugin drafts, the user submits. Hand-off message says "drafted" / "ready to send" — never "submitted" or "delivered".
 - **Writing `Current phase:` in STATE.md.** Append-only for this skill. The router owns `Current phase:`. Only append to `Completed phases:` and `Artifacts:` plus the `Last updated:` footer.
 - **Advancing STATE.md before verifying PITCH_KIT.md exists on disk.** Check the file after Write, before Edit-ing STATE.md.

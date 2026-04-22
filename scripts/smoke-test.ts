@@ -454,7 +454,7 @@ function checkStartSimulation() {
       '',
       '- Name: Smoke Tester',
       '- Patchline artist ID: not in roster',
-      '- Soundcharts ID: smoke-test-id',
+      '- Streaming intelligence ID: smoke-test-id',
       '- Primary genres: test, fixture',
       '- Career stage: developing',
       '- Country: US',
@@ -468,7 +468,7 @@ function checkStartSimulation() {
       '- Composition status: complete',
       '- Focus track asset ID: pending',
       '- Audio status: required',
-      '- Cynite status: missing',
+      '- Track analysis status: missing',
       '',
     ].join('\n')
     fs.writeFileSync(projectMd, projectBody, 'utf8')
@@ -501,7 +501,7 @@ function checkStartSimulation() {
       '',
       '`required`',
       '',
-      '## Cynite status',
+      '## Track analysis status',
       '',
       '`missing`',
       '',
@@ -521,7 +521,7 @@ function checkStartSimulation() {
     const stateRead = fs.readFileSync(stateMd, 'utf8')
     if (!/Current phase/.test(stateRead)) failures.push('STATE.md missing Current phase section')
     if (!/audio-intake/.test(stateRead)) failures.push('STATE.md missing audio-intake pointer for complete composition')
-    if (!/Cynite status/.test(stateRead)) failures.push('STATE.md missing Cynite status section')
+    if (!/Track analysis status/.test(stateRead)) failures.push('STATE.md missing Track analysis status section')
 
     if (failures.length === 0) {
       record(name, 'pass', `scratch at ${tmpRoot}`)
@@ -548,6 +548,113 @@ function checkPublicDocsStartGuidance() {
       return
     }
     record(name, 'pass', 'README documents natural-language start + slash-alias fallback')
+  } catch (e: any) {
+    record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
+  }
+}
+
+function readSkill(name: string): string {
+  return fs.readFileSync(path.join(SKILLS_DIR, name, 'SKILL.md'), 'utf8')
+}
+
+function checkCommandCenterPrompts() {
+  const name = 'command-center prompt regressions'
+  try {
+    const start = readSkill('start')
+    const audio = readSkill('audio-intake')
+    const moodboard = readSkill('moodboard')
+    const releasePlan = readSkill('release-plan')
+    const rollout = readSkill('rollout')
+    const failures: string[] = []
+
+    if (!/mcp__aria__create_project/.test(start)) failures.push('start does not call create_project')
+    if (!/Project Anchor/.test(start)) failures.push('start does not persist Project Anchor')
+    if (!/campaignIntake/.test(start)) failures.push('start does not seed campaignIntake ideaMetadata')
+
+    if (!/Target release date/.test(audio) || !/Marketing goal/.test(audio)) {
+      failures.push('audio-intake does not capture compact campaign intake')
+    }
+    if (!/Wait 60 seconds/.test(audio) || !/every 20 seconds/.test(audio) || !/7 minutes/.test(audio)) {
+      failures.push('audio-intake polling window is not the MVP 60s + 20s/~7min loop')
+    }
+    if (!/Confirm Track Title From Filename/.test(audio)) {
+      failures.push('audio-intake does not confirm title from filename')
+    }
+
+    if (/Which Cynite-analyzed tracks should anchor/i.test(moodboard)) {
+      failures.push('moodboard still asks competing anchor question')
+    }
+    if (!/focus track is always the anchor/i.test(moodboard)) {
+      failures.push('moodboard does not force focus track as anchor')
+    }
+    if (!/color, contrast, or sharpen/i.test(moodboard)) {
+      failures.push('moodboard does not frame catalog refs as supplementary color/contrast')
+    }
+
+    if (!/mcp__aria__get_artist_context/.test(releasePlan)) {
+      failures.push('release-plan does not call get_artist_context')
+    }
+    if (!/mcp__aria__create_campaign/.test(releasePlan)) {
+      failures.push('release-plan does not create app-backed campaign tasks')
+    }
+    if (!/Distributor: <known value or TBD>/.test(releasePlan)) {
+      failures.push('release-plan does not default distributor to TBD')
+    }
+
+    if (!/mcp__aria__get_artist_context/.test(rollout)) {
+      failures.push('rollout does not call get_artist_context')
+    }
+    if (/Which socials are you actually active on/i.test(rollout) || /Which socials are you active on/i.test(rollout)) {
+      failures.push('rollout still asks social-activity question')
+    }
+    if (!/baseline multi-channel rollout/i.test(rollout)) {
+      failures.push('rollout lacks automatic baseline multi-channel fallback')
+    }
+
+    if (failures.length === 0) {
+      record(name, 'pass')
+    } else {
+      record(name, 'fail', failures.join('; '))
+    }
+  } catch (e: any) {
+    record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
+  }
+}
+
+function checkVendorNeutralPublicCopy() {
+  const name = 'vendor-neutral public copy'
+  try {
+    const skillFiles = fs.existsSync(SKILLS_DIR)
+      ? fs
+          .readdirSync(SKILLS_DIR)
+          .map((entry) => path.join(SKILLS_DIR, entry, 'SKILL.md'))
+          .filter((file) => fs.existsSync(file))
+      : []
+    const scanned = [
+      README,
+      path.join(PLUGIN_ROOT, 'CHANGELOG.md'),
+      path.join(PLUGIN_ROOT, 'TROUBLESHOOTING.md'),
+      path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'),
+      path.join(PLUGIN_ROOT, 'package.json'),
+      path.join(PLUGIN_ROOT, 'CLAUDE.md'),
+      path.join(PLUGIN_ROOT, 'reference', 'state-schema.md'),
+      ...skillFiles,
+    ]
+    const hits: string[] = []
+    for (const file of scanned) {
+      const raw = fs.readFileSync(file, 'utf8')
+      raw.split(/\r?\n/).forEach((line, index) => {
+        if (/\b(Cynite|Soundcharts)\b/.test(line)) {
+          hits.push(`${path.relative(PLUGIN_ROOT, file)}:${index + 1}`)
+        }
+      })
+    }
+
+    if (hits.length === 0) {
+      record(name, 'pass', 'public docs + skill instructions are vendor-neutral')
+    } else {
+      record(name, 'fail', hits.slice(0, 8).join(', '))
+    }
   } catch (e: any) {
     record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
   }
@@ -628,6 +735,12 @@ async function main() {
 
   section('5. public docs start guidance')
   checkPublicDocsStartGuidance()
+
+  section('6. command-center prompt regressions')
+  checkCommandCenterPrompts()
+
+  section('7. vendor-neutral public copy')
+  checkVendorNeutralPublicCopy()
 
   printReport()
   cleanup()

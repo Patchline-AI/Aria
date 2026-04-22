@@ -76,11 +76,11 @@ Look at the error body. Common causes:
 
 - **`UNAUTHENTICATED`** — session expired. Run `/mcp` and reconnect.
 - **`NOT_FOUND` on a catalog tool** — you haven't imported any assets yet. Run `/aria:start` to bootstrap, then use the web app to import tracks from Spotify / Soundcloud / DistroKid.
-- **`RATE_LIMITED`** — you've hit the Soundcharts quota (free tier). Retry in 60 seconds.
+- **`RATE_LIMITED`** — you've hit the streaming-intelligence quota. Retry in 60 seconds.
 
 ### `find_playlists` / `inspect_playlist` returns empty
 
-Cause: the track you're targeting hasn't been analyzed by Cynite yet (audio features unavailable).
+Cause: the track you're targeting hasn't completed track analysis yet (audio features unavailable).
 
 **Fix:** upload the master audio via the Patchline web app. Playlist matching starts from sonic signatures — without them, matching falls back to genre-only, which is less precise.
 

@@ -39,12 +39,12 @@ search your Patchline roster/index.
 
 - **Nine lifecycle skills** — `audio-intake`, `creative-brief`, `vision-story`, `moodboard`, `songwriting-brief`, `release-plan`, `rollout`, `pitch-kit`, `smart-link`
 - **Two lifecycle skills** — `aria:start` bootstraps a project, `aria:next` advances to the next phase
-- **The `aria` MCP server** — 20 tools spanning catalog management, secure upload handoff, playlist targeting with Cynite sonic signatures, Soundcharts-backed artist intelligence, pitch generation, and smart-link creation
+- **The `aria` MCP server** — tools spanning catalog management, secure upload handoff, playlist targeting, artist intelligence, pitch generation, project creation, and smart-link creation
 - **A `.patchline/` workspace** — plaintext markdown artifacts you can hand-edit, version-control, or forward to a collaborator
 
 ## How it's different from "ChatGPT for music"
 
-This is not a tool explorer. Each phase is a **progressive interview**: Claude asks 3–5 clarifying questions, calls MCP tools to ground the answers in your real data, and produces a named artifact (`BRIEF.md`, `MOODBOARD.md`, `PITCH_KIT.md` …). Every output is verifiable against your Patchline catalog + the live Soundcharts and Cynite data pipeline.
+This is not a tool explorer. Each phase is a **progressive interview**: Claude asks only the missing clarifying questions, calls MCP tools to ground the answers in your real data, and produces a named artifact (`BRIEF.md`, `MOODBOARD.md`, `PITCH_KIT.md` …). Every output is verifiable against your Patchline catalog, artist intelligence, and track analysis.
 
 If you've seen a GSD-style phased plugin — same discipline. Different verb set: music.
 
@@ -53,8 +53,8 @@ If you've seen a GSD-style phased plugin — same discipline. Different verb set
 1. `cd` into a directory where you want your project workspace (the current dir is fine; Aria never touches anything outside `.patchline/`)
 2. Run `/reload-plugins` and approve the Aria MCP server if prompted
 3. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected
-4. Say `Start Aria for this artist: <Spotify artist profile URL>` — Aria resolves the artist through Patchline/Soundcharts, asks for your project name, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
-5. If you already have the finished track, Aria routes to `audio-intake` first so you can upload/confirm the focus track and wait for Cynite before sonic strategy questions.
+4. Say `Start Aria for this artist: <Spotify artist profile URL>` — Aria resolves the artist through Patchline intelligence, asks for your project name, creates a Patchline Project Anchor, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
+5. If you already have the finished track, Aria routes to `audio-intake` first so you can upload/confirm the focus track, capture campaign basics, and wait for track analysis before sonic strategy questions.
 6. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. After audio is settled, the next strategy run produces `BRIEF.md`.
 7. Keep saying `Continue Aria` until your smart link is live.
 
@@ -93,7 +93,7 @@ Patchline also ships a Telegram companion bot for always-on mobile execution: pa
 
 - **Plugin code: [MIT License](./LICENSE).** Open source so artists, managers, and builders can inspect how the workflow is structured and adapt it for their own teams.
 - **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v1` is Patchline-owned infrastructure, authenticated via Cognito. Requires a Patchline account. This is the standard authenticated-service pattern (AWS / OpenAI / Anthropic SDKs).
-- **Inspired by the wider Claude music-tooling community.** We respect earlier experiments such as [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills); Aria takes a different route by grounding release operations in Patchline's hosted catalog, Soundcharts, Cynite, and smart-link infrastructure.
+- **Inspired by the wider Claude music-tooling community.** We respect earlier experiments such as [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills); Aria takes a different route by grounding release operations in Patchline's hosted catalog, artist intelligence, track analysis, and smart-link infrastructure.
 
 ## Extending Aria
 

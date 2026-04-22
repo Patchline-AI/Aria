@@ -1,6 +1,6 @@
 {
   "name": "@patchline-ai/aria",
-  "version": "0.1.2-alpha",
+  "version": "0.1.3-alpha",
   "description": "Aria by Patchline — guided music-release workflow for Claude Code. From idea to smart link.",
   "homepage": "https://patchline.ai",
   "repository": {
@@ -27,8 +27,8 @@
     "smart-link",
     "patchline",
     "aria",
-    "soundcharts",
-    "cynite"
+    "artist-intelligence",
+    "track-analysis"
   ],
   "private": true,
   "scripts": {

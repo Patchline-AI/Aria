@@ -46,10 +46,10 @@ Also Read `.patchline/artifacts/SONGWRITING.md`. If it exists, ask: "A SONGWRITI
 
 In order, with Read:
 
-- `.patchline/PROJECT.md` — artist name, Patchline artist ID, Soundcharts ID, distribution mode
+- `.patchline/PROJECT.md` — artist name, Patchline artist ID, streaming-intelligence ID, distribution mode
 - `.patchline/artifacts/BRIEF.md` — project intent, audience, north-star metric, non-negotiables
 - `.patchline/artifacts/VISION.md` — sonic identity, reference artists, narrative arc
-- `.patchline/artifacts/MOODBOARD.md` — reference tracks with Cynite features, tonal palette
+- `.patchline/artifacts/MOODBOARD.md` — reference tracks with track-analysis features, tonal palette
 
 If any of these are missing, STOP and tell the user which phase they need to back-run. This skill will not guess at earlier-phase content.
 
@@ -60,7 +60,7 @@ You need two kinds of grounding: the tonal/structural patterns of the artist's *
 ### Always call
 
 - `mcp__aria__get_artist_intelligence` with the artist name — pull the 3–5 most-streamed tracks from the returned `topTracks` array (or equivalent field). These are the catalog reference points for "what this artist's songs currently do."
-- For each of the top 3 tracks, call `mcp__aria__get_song_intelligence` with the track's Soundcharts/ISRC identifier. This returns:
+- For each of the top 3 tracks, call `mcp__aria__get_song_intelligence` with the track's streaming-intelligence or ISRC identifier. This returns:
   - Audio features (tempo, key, energy, valence) — you'll use these to anchor "structural notes" on new tracks
   - Play history / streaming trajectory — use if the user asks "which kind of song has worked for me before"
   - Co-writer / producer credits if available

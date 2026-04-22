@@ -59,7 +59,7 @@ If any upstream artifact is missing, STOP with a pointer to the right phase.
 
 ## Step 2: Resolve + verify the focus asset
 
-The smart link is built from a single `assetId` — the server resolves everything else (ISRC → DSP URLs via Soundcharts, artist identity, cover art) from the Patchline catalog asset record.
+The smart link is built from a single `assetId` — the server resolves everything else (ISRC to DSP URLs, artist identity, cover art) from the Patchline catalog asset record.
 
 ### 2a. Locate the focus track's assetId
 
@@ -73,7 +73,7 @@ Call `mcp__aria__get_asset` with `{ assetId: "<from 2a>" }`. Check the returned 
 
 **If `isrc` is null or missing:**
 
-> STOP. Surface clearly: "Your focus track doesn't have an ISRC registered in Patchline's catalog. The smart link server needs an ISRC to resolve DSP links via Soundcharts. Upload/distribute this track through your distributor (DistroKid, Symphonic, Stem, TuneCore) so an ISRC is assigned, then re-run `/aria:smart-link`. If you already distributed, re-import the asset in the Patchline dashboard to refresh the ISRC."
+> STOP. Surface clearly: "Your focus track doesn't have an ISRC registered in Patchline's catalog. The smart link server needs an ISRC to resolve DSP links. Upload/distribute this track through your distributor (DistroKid, Symphonic, Stem, TuneCore) so an ISRC is assigned, then re-run `/aria:smart-link`. If you already distributed, re-import the asset in the Patchline dashboard to refresh the ISRC."
 
 Do NOT proceed. The server will reject `create_smart_link` without an ISRC — catching it here gives a clearer error than the server's generic validation message.
 
@@ -95,7 +95,7 @@ You'll cite these in LAUNCH.md's "Release specs" section.
 Smart links attach to the user's roster. Call `mcp__aria__add_artist` with:
 
 - `artist_url` — **the Spotify artist URL from PROJECT.md**. This is the ONE required field. The tool also accepts YouTube / TikTok / SoundCloud / Apple Music / Instagram URLs, but Spotify is canonical and what you should use if captured.
-- `artist_name` — optional display-name override. Usually omit; the handler derives the canonical name from Soundcharts enrichment.
+- `artist_name` — optional display-name override. Usually omit; the handler derives the canonical name from artist intelligence.
 
 The tool is **idempotent** — if the artist is already in the user's roster, `add_artist` returns the existing record with the same `artistId`. No duplicate created.
 
@@ -111,7 +111,7 @@ STOP with a clear pointer:
 
 - Auth error → STOP: "Patchline MCP auth error. Run `/mcp` to reconnect, then re-invoke `/aria:next`."
 - "Could not identify a supported platform from: <url>" → PROJECT.md has a malformed or unsupported URL. Point the user at the fix: Spotify artist URL preferred. Ask them to hand-edit and re-invoke.
-- Soundcharts couldn't resolve (non-fatal) → the tool still adds the artist; response `enrichmentWillRun: false`. Note in LAUNCH.md that deep intelligence will run via the profile page's auto-enrich fallback. Continue.
+- Artist intelligence could not resolve (non-fatal) → the tool still adds the artist; response `enrichmentWillRun: false`. Note in LAUNCH.md that deep intelligence will run via the profile page's auto-enrich fallback. Continue.
 - Rate-limit error → back off, tell user: "Patchline rate-limited add_artist. Retry in a minute."
 
 Capture the returned `artistId` (aka `patchlineArtistId`). If PROJECT.md had "not in roster" before, use Edit to update the `Patchline artist ID:` line with the new `artistId`.
@@ -132,7 +132,7 @@ Ask via **AskUserQuestion**:
 
 If the user picks `Custom title`, follow up: "What should the smart-link display name be?" and capture their string.
 
-You do NOT ask about cover art or DSP URLs — the server resolves both from the asset record (cover art from `asset.coverArtUrl`, DSP URLs from Soundcharts via the ISRC).
+You do NOT ask about cover art or DSP URLs — the server resolves both from the asset record (cover art from `asset.coverArtUrl`, DSP URLs via the ISRC).
 
 ## Step 5: Create the smart link
 
@@ -147,7 +147,7 @@ The tool returns a JSON object with these fields:
 - `shareUrl` — the live URL, e.g. `https://patchline.ai/s/midnight-oil`
 - `trackName` — resolved track title
 - `artistName` — resolved artist display name
-- `platformLinks` — object mapping DSP names to URLs (Spotify, Apple Music, Tidal, YouTube Music, etc.), populated server-side via Soundcharts
+- `platformLinks` — object mapping DSP names to URLs (Spotify, Apple Music, Tidal, YouTube Music, etc.), populated server-side from streaming intelligence
 - `platformCount` — how many DSPs were resolved
 
 Capture `shareUrl`, `shareId`, and `platformLinks`. These are your grounding for LAUNCH.md.
@@ -196,7 +196,7 @@ Use this URL everywhere — bio links, Instagram stories, email signatures, ever
 - **Distribution:** <self_releasing | with_label — label name if applicable>
 - **Cover art:** <coverArt URL from get_asset, or "Patchline default placeholder — no cover art on asset">
 
-**DSP links resolved by the smart link server (from ISRC via Soundcharts):**
+**DSP links resolved by the smart link server (from ISRC):**
 
 <Enumerate every key in create_smart_link's platformLinks response. Example:>
 - Spotify: <platformLinks.spotify | "not resolved">
@@ -206,7 +206,7 @@ Use this URL everywhere — bio links, Instagram stories, email signatures, ever
 - SoundCloud: <platformLinks.soundcloud | "not resolved">
 - Deezer: <platformLinks.deezer | "not resolved">
 
-<platformCount from response> DSP links total. DSPs not yet listed will auto-populate on the smart link as Soundcharts indexes them post-distribution — re-run `/aria:smart-link` after a week to refresh if needed.
+<platformCount from response> DSP links total. DSPs not yet listed will auto-populate on the smart link as streaming intelligence indexes them post-distribution — re-run `/aria:smart-link` after a week to refresh if needed.
 
 ---
 
@@ -268,7 +268,7 @@ Work this top-to-bottom on release day. Check items off as you go — the user's
 
 <If self_releasing:>
 - [ ] Confirm distribution is live — check your distributor's dashboard (DistroKid, Symphonic, Stem, TuneCore, CD Baby)
-- [ ] If DSP links aren't resolving yet on the smart link, wait 24–48h for Soundcharts to index the ISRC before panicking
+- [ ] If DSP links aren't resolving yet on the smart link, wait 24–48h for streaming intelligence to index the ISRC before panicking
 
 <If with_label:>
 - [ ] Notify label contact that the smart link is live — forward this smart-link URL + the PITCH_KIT.md
@@ -294,7 +294,7 @@ Work this top-to-bottom on release day. Check items off as you go — the user's
 
 - [ ] Same as T+24h — track adds, streams, DSP link completeness
 - [ ] If zero playlist pickups yet, that's still within normal range — editorial playlists often add on weekly refresh cycles (Monday / Friday)
-- [ ] If smart link is missing DSPs that should exist (e.g. Spotify shows but Apple Music doesn't), Soundcharts is probably still indexing — re-run `/aria:smart-link` to refresh `platformLinks`
+- [ ] If smart link is missing DSPs that should exist (e.g. Spotify shows but Apple Music doesn't), streaming intelligence is probably still indexing — re-run `/aria:smart-link` to refresh `platformLinks`
 
 ### T+7d check — "iterate or coast" decision
 
@@ -308,7 +308,7 @@ Work this top-to-bottom on release day. Check items off as you go — the user's
 The plugin's current MCP does not yet have `get_streaming_stats` or `get_playlist_pickup` (those are on the post-launch backlog as B1 / verify-phase). For now, monitor manually via:
 - Spotify for Artists dashboard
 - Patchline dashboard → Smart Links → `<shareId>` (for click analytics)
-- Soundcharts (via your Patchline intelligence tools — `get_artist_intelligence` re-pulls metrics)
+- Streaming intelligence (via your Patchline intelligence tools — `get_artist_intelligence` re-pulls metrics)
 
 When the verify-phase MCP tools ship, Aria will do this automatically.
 
@@ -348,13 +348,13 @@ All artifacts live in `.patchline/artifacts/`. They persist on disk. Post-PR-#46
 ## Data sources
 
 - `get_asset(assetId: <id>)`: returned at <timestamp> — ISRC verified, title `<title>`, cover art `<url or null>`
-- `add_artist(artist_url: <spotify-url>)`: <created new | reused existing> — `artistId: <id>`, Soundcharts enrichment `<will run | skipped>`, fetched <timestamp>
+- `add_artist(artist_url: <spotify-url>)`: <created new | reused existing> — `artistId: <id>`, artist-intelligence enrichment `<will run | skipped>`, fetched <timestamp>
 - `create_smart_link(assetId: <id><, title: <override>>)`: `shareId: <id>`, `shareUrl: <url>`, `platformCount: <N>`, returned at <timestamp>
 - Upstream artifacts: BRIEF (dated X), VISION (dated X), MOODBOARD (dated X), <SONGWRITING (dated X) if present>, RELEASE_PLAN (dated X), ROLLOUT (dated X), PITCH_KIT (dated X)
 
 ---
 
-*This file is the operational deliverable. Edit by hand; the checklist is yours. Re-run `/aria:smart-link` to refresh the smart link's DSP coverage (same `shareUrl`, updated `platformLinks`) as Soundcharts indexes more DSPs post-distribution.*
+*This file is the operational deliverable. Edit by hand; the checklist is yours. Re-run `/aria:smart-link` to refresh the smart link's DSP coverage (same `shareUrl`, updated `platformLinks`) as streaming intelligence indexes more DSPs post-distribution.*
 ```
 
 ### Grounding-quality checklist (self-check before writing)
@@ -365,7 +365,7 @@ All artifacts live in `.patchline/artifacts/`. They persist on disk. Post-PR-#46
 - [ ] Cover art field reflects the asset's `coverArt` URL (or the default placeholder note if null) — not made up
 - [ ] The playlist-submission list in the checklist enumerates EVERY playlist from PITCH_KIT.md, cross-referenced by section heading
 - [ ] Social copy drafts pull voice from VISION.md — not generic "Excited to announce my new track!"
-- [ ] The Monitoring section cites Soundcharts/Spotify for Artists as the current manual-check mechanism AND mentions that verify-phase tooling is post-launch backlog
+- [ ] The Monitoring section cites streaming intelligence / Spotify for Artists as the current manual-check mechanism AND mentions that verify-phase tooling is post-launch backlog
 - [ ] `Data sources` section reflects the tools you actually called, with their real arg shapes (`artist_url`, `assetId`)
 
 If any check fails, fix before writing.
@@ -456,7 +456,7 @@ You:
 ```
 You (get_asset returns { ..., isrc: null, ... }):
   Your focus track doesn't have an ISRC registered in Patchline's catalog.
-  The smart link server needs an ISRC to resolve DSP links via Soundcharts.
+  The smart link server needs an ISRC to resolve DSP links.
   
   Upload/distribute this track through your distributor (DistroKid,
   Symphonic, Stem, TuneCore) so an ISRC is assigned, then re-run

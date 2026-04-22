@@ -11,12 +11,12 @@
 - Which lifecycle phase the project is currently in
 - Which phases have completed (and when, producing which artifact)
 - Which phases are blocked (and why)
-- Project-wide settings that affect chain routing: `Distribution mode`, `Composition status`, `Focus track asset ID`, `Audio status`, `Cynite status`, `Patchline persistence`
+- Project-wide settings that affect chain routing: `Distribution mode`, `Composition status`, `Focus track asset ID`, `Audio status`, `Track analysis status`, `Patchline persistence`
 
 Every Aria skill is expected to:
 
 - **Read** STATE.md at the start to establish context
-- **Write** STATE.md at the end (if the skill produced an artifact) — append itself to `Completed phases:`, append its artifact to `Artifacts:`, and bump the `Last updated:` footer. `audio-intake` also owns the focus-track/audio/Cynite fields. **Phase skills do NOT write `Current phase:`. Only the `next` router writes that field** (see §4 authority split).
+- **Write** STATE.md at the end (if the skill produced an artifact) — append itself to `Completed phases:`, append its artifact to `Artifacts:`, and bump the `Last updated:` footer. `audio-intake` also owns the focus-track/audio/track-analysis fields. **Phase skills do NOT write `Current phase:`. Only the `next` router writes that field** (see §4 authority split).
 
 STATE.md is plaintext markdown on purpose. Users can hand-edit. If they hand-edit, the next skill respects the edit — skills trust the ledger over their own assumptions.
 
@@ -185,7 +185,7 @@ Set once at `start`; determines whether the `songwriting-brief` phase runs. This
 ```
 
 **Valid values:**
-- `complete` — final mixes / masters exist. Chain is `audio-intake → creative-brief → vision-story → moodboard → release-plan → rollout → pitch-kit → smart-link` (8 phases). `audio-intake` must confirm a focus asset and trigger/observe Cynite before strategy phases ask sonic questions.
+- `complete` — final mixes / masters exist. Chain is `audio-intake → creative-brief → vision-story → moodboard → release-plan → rollout → pitch-kit → smart-link` (8 phases). `audio-intake` must confirm a focus asset and observe track analysis before strategy phases ask sonic questions.
 - `partial` — rough sketches / demos exist, still writing. Chain includes `songwriting-brief` (8 phases).
 - `writing` — starting from zero, no audio. Chain includes `songwriting-brief` (8 phases).
 
@@ -235,21 +235,21 @@ Tracks the file-exchange/upload handoff for finished-track projects.
 
 ---
 
-### 3.10 `## Cynite status`
+### 3.10 `## Track analysis status`
 
 Tracks whether the focus track has enough audio analysis for downstream strategy phases.
 
 ```markdown
-## Cynite status
+## Track analysis status
 
-`missing` | `cynite_pending` | `cynite_complete` | `cynite_failed` | `not_required`
+`missing` | `analysis_pending` | `analysis_complete` | `analysis_failed` | `not_required`
 ```
 
 **Valid values:**
 - `missing` — no analysis request has been confirmed yet.
-- `cynite_pending` — upload was confirmed and analysis was triggered, but features are not visible yet.
-- `cynite_complete` — downstream phases can use `get_asset` / `get_audio_features`.
-- `cynite_failed` — analysis failed; downstream phases must disclose the gap.
+- `analysis_pending` — upload was confirmed and analysis was triggered, but features are not visible yet.
+- `analysis_complete` — downstream phases can use `get_asset` / `get_audio_features`.
+- `analysis_failed` — analysis failed; downstream phases must disclose the gap.
 - `not_required` — no finished audio exists yet.
 
 **Set by:** `start` initializes; `audio-intake` updates.
@@ -258,7 +258,7 @@ Tracks whether the focus track has enough audio analysis for downstream strategy
 
 ### 3.11 `## Artist enrichment status`
 
-Tracks whether Soundcharts roster enrichment has completed. This is distinct from whether every field is populated.
+Tracks whether artist-intelligence roster enrichment has completed. This is distinct from whether every field is populated.
 
 ```markdown
 ## Artist enrichment status
@@ -266,7 +266,7 @@ Tracks whether Soundcharts roster enrichment has completed. This is distinct fro
 `pending` | `complete` | `failed`
 ```
 
-If status is `complete` but genres are empty, say "Soundcharts returned no genre classification yet" rather than "pending."
+If status is `complete` but genres are empty, say "artist intelligence returned no genre classification yet" rather than "pending."
 
 ---
 
@@ -316,7 +316,7 @@ function pick_next_phase(state):
     completed     = state.completed_phases      # from `## Completed phases` bullet list
     comp_status   = state.composition_status    # from `## Composition status`
     audio_status  = state.audio_status          # from `## Audio status`
-    cynite_status = state.cynite_status         # from `## Cynite status`
+    analysis_status = state.analysis_status     # from `## Track analysis status`
 
     # Step 3: chain complete?
     if current_phase == "complete":
@@ -366,7 +366,7 @@ function pick_next_phase(state):
 
 - `Completed phases:` is the AUTHORITATIVE signal for what's shipped. The `next` router walks the chain against this list.
 - `Current phase:` is a router-maintained pointer. **Only `next` writes it** — phase skills never touch it. This eliminates the split-brain that existed when both `next` and phase skills could write `Current phase:`.
-- **Phase skills write:** append to `Completed phases:`, append to `Artifacts:`, bump `Last updated:`. `audio-intake` may also update the focus-track/audio/Cynite status fields it owns. No phase skill writes `Current phase:`.
+- **Phase skills write:** append to `Completed phases:`, append to `Artifacts:`, bump `Last updated:`. `audio-intake` may also update the focus-track/audio/track-analysis status fields it owns. No phase skill writes `Current phase:`.
 - **`next` writes:** `Current phase:` — updates it before announcing which phase will run. Sole writer.
 - If `Current phase:` drifts (e.g. user hand-edits `Completed phases:`), `next`'s fresh chain walk is authoritative — it overwrites the pointer to match reality.
 - The composition-status branch is evaluated every `next` invocation — if the user hand-edits `Composition status:` mid-cycle, `next` respects the new value.
@@ -420,7 +420,7 @@ See §3.7. STOP. Tell the user to set it.
 
 ### Case E — completed-track project skipped audio-intake
 
-`Composition status` is `complete`, but `audio-intake` is not in `Completed phases:` or `Cynite status` is not `cynite_complete`.
+`Composition status` is `complete`, but `audio-intake` is not in `Completed phases:` or `Track analysis status` is not `analysis_complete`.
 
 **Handling:** route to `audio-intake` before `creative-brief` / `vision-story`. Do not ask generic sonic-description questions while Patchline can analyze the track.
 
@@ -530,9 +530,9 @@ current_phase = state.lines[3]  # depends on section ordering
 
 `uploaded`
 
-## Cynite status
+## Track analysis status
 
-`cynite_complete`
+`analysis_complete`
 
 ## Patchline persistence
 
