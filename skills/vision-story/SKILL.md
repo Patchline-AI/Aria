@@ -1,6 +1,6 @@
 ---
 name: vision-story
-description: "Second lifecycle phase. Produces VISION.md — the project's sonic identity, reference artists (verified via MCP, not invented), narrative positioning, and tonal palette. Builds on BRIEF.md from the creative-brief phase. Grounded in `get_trending_artists` (peer landscape) and `search_artists` (validation of any user-named peers). Use when STATE.md shows `Current phase: vision-story`. Invoked via `/aria:next` after the creative brief is written."
+description: "Second lifecycle phase. Produces VISION.md — the project's sonic identity, reference artists (verified via MCP, not invented), narrative positioning, and tonal palette. Builds on BRIEF.md from the creative-brief phase and, when present, AUDIO_INTAKE.md/Cynite features. Grounded in `get_trending_artists` (peer landscape), `search_artists` (validation of any user-named peers), and `get_asset` / `get_audio_features` for finished tracks. Use when STATE.md shows `Current phase: vision-story`. Invoked via `/aria:next` after the creative brief is written."
 argument-hint: "[optional — no arguments expected; reads context from .patchline/]"
 model: claude-sonnet-4-6
 prerequisites:
@@ -20,8 +20,8 @@ Produce `.patchline/artifacts/VISION.md` — a one-page vision document that cap
 
 You will:
 1. Read BRIEF.md + PROJECT.md for context
-2. Ground yourself in the peer landscape via MCP
-3. Conduct a focused 3–5 question interview about sonic direction, references, story, and tone
+2. Ground yourself in the peer landscape and focus-track audio features via MCP
+3. Conduct a focused 3–5 question interview about intent, references, story, and tone
 4. Validate any user-named reference artists against MCP
 5. Produce `VISION.md`
 6. Update `STATE.md` to advance to `moodboard`
@@ -38,20 +38,30 @@ This phase is descriptive, not prescriptive. You are NOT picking BPMs, keys, or 
 
 Use Read in this order:
 
-- `.patchline/STATE.md` — confirm `Current phase: vision-story`. If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not vision-story. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
-- `.patchline/PROJECT.md` — extract: artist name, genres, career stage, distribution mode
+- `.patchline/STATE.md` — confirm `Current phase: vision-story`. Also extract `Composition status`, `Focus track asset ID`, `Audio status`, and `Cynite status`. If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not vision-story. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
+- `.patchline/PROJECT.md` — extract: artist name, genres, career stage, distribution mode, focus track asset ID if present
+- `.patchline/artifacts/AUDIO_INTAKE.md` — if present, extract focus-track title, asset ID, and Cynite/audio summary
 - `.patchline/artifacts/BRIEF.md` — extract: project intent, audience, success metric, non-negotiables. This is the most important input — it sets the brief that VISION.md must extend.
 - `.patchline/artifacts/VISION.md` — if it ALREADY exists, ask the user: "A VISION.md already exists. Overwrite it, refine it in place, or cancel?" Do not silently overwrite.
 
 If BRIEF.md is missing, STOP and tell the user: "BRIEF.md is missing from `.patchline/artifacts/`. The creative-brief phase hasn't been completed (or its artifact was deleted). Run `/aria:next` — it will detect the drift and re-run creative-brief."
 
-## Step 2: Ground in the peer landscape
+## Step 2: Ground in the peer landscape and focus track
 
 You need to know who else is releasing in the same sonic neighborhood right now. This is NOT so you can recommend peers to the artist (don't do that) — it's so you can check the plausibility of peers THEY name, and spot obvious gaps in their framing.
 
 ### Always call
 
 - `mcp__aria__get_trending_artists` with the artist's primary genre (from PROJECT.md). Limit to the first 10–15 results. Capture names + career stages — you'll use them to sanity-check user-named references.
+
+### If a focus track exists
+
+If `Focus track asset ID` is neither `pending` nor `not_required`, call:
+
+- `mcp__aria__get_asset` with the focus track asset ID
+- `mcp__aria__get_audio_features` with the focus track asset ID
+
+Capture concrete features: BPM, key, genres, moods, energy, danceability, valence, acousticness, and any Cynite confidence notes. These facts change the interview: you should not ask the artist to describe the sound from scratch when Patchline has already analyzed the track.
 
 ### Conditionally call (after the interview)
 
@@ -60,6 +70,7 @@ You need to know who else is releasing in the same sonic neighborhood right now.
 ### If MCP returns errors
 
 - `get_trending_artists` errors → surface to the user: "Couldn't pull the current trending peers in your genre — the Patchline intel index returned: `<error>`. Continuing without a peer-landscape sanity check; your named references will still be validated via `search_artists`."
+- `get_asset` / `get_audio_features` errors for a required focus track → surface the error and continue only if BRIEF.md has enough user-provided context. Do not pretend Cynite was available.
 - Do not fabricate a peer list from general knowledge. The brief's factual claims must trace to MCP output or the user's words.
 
 ## Step 3: Interview (3–5 focused questions)
@@ -68,7 +79,9 @@ Ask questions ONE AT A TIME. Skip any question already answered by BRIEF.md — 
 
 ### The four pillars
 
-1. **Sonic direction — "When you describe the SOUND of this project in 2–3 sentences to someone who hasn't heard it, what do you say?"**
+1. **Sonic direction — adapt to the audio state.**
+   - If Cynite/audio features are available, do NOT ask the user to describe the track from scratch. Start from the analysis: "Patchline reads the track as <BPM/key/genre/mood/energy summary>. What does that analysis miss about the feeling, references, or intention?"
+   - If Cynite is unavailable and no focus track exists, use the fallback: "When you describe the SOUND of this project in 2–3 sentences to someone who hasn't heard it, what do you say?"
    - You're looking for descriptive language. "Warm, analog, slow-burning" is useful. "Good" is not.
    - If the brief already captured some of this (e.g. "darker 2am club"), prompt for MORE: "The brief says darker/2am-club — I want the next layer. Is it dub-influenced? Melodic? Percussive? Ambient at the edges?"
 
@@ -117,7 +130,7 @@ Use the Write tool to create `.patchline/artifacts/VISION.md` with this structur
 # Vision: <project-name>
 
 > Generated by `/aria:next` (vision-story skill) on YYYY-MM-DD · v1
-> Grounded in: BRIEF.md (dated <brief date>), `get_trending_artists` (fetched YYYY-MM-DDThh:mm:ssZ, genre: <genre>), `search_artists` (N references validated), user interview dated YYYY-MM-DD.
+> Grounded in: BRIEF.md (dated <brief date>), AUDIO_INTAKE.md / `get_asset` / `get_audio_features` if a focus track exists, `get_trending_artists` (fetched YYYY-MM-DDThh:mm:ssZ, genre: <genre>), `search_artists` (N references validated), user interview dated YYYY-MM-DD.
 
 ## Sonic identity
 
@@ -166,6 +179,7 @@ The artist positions this project as singular — no external peer anchor. Downs
 ## Data sources
 
 - BRIEF.md: dated <brief date>
+- Focus-track audio: <asset ID + "get_audio_features returned BPM/key/moods" OR "no focus track / unavailable">
 - Patchline peer landscape: `get_trending_artists` for <genre>, fetched <timestamp>, returned <N> artists
 - Reference validation: `search_artists` called <N> times, <M> confirmed + <K> unverified
 - User interview: conducted <date>, <N> questions answered
@@ -180,7 +194,7 @@ The artist positions this project as singular — no external peer anchor. Downs
 Before you Write:
 
 - [ ] Every reference artist in the "Reference artists" section is either user-named-and-search_artists-confirmed, user-named-and-flagged-unverified, or explicitly marked "no external references"
-- [ ] "Sonic identity" uses the artist's specific language from Q1 — no marketing-speak substitutions
+- [ ] "Sonic identity" uses Cynite/audio-feature facts when available, plus the artist's correction/intent from Q1 — no marketing-speak substitutions
 - [ ] "Tonal palette" adjectives are the user's words (Q4), not synonyms you picked
 - [ ] "Peer-landscape context" cites real names from `get_trending_artists` output, or honestly states the tool errored
 - [ ] "Narrative / story" reads as a human wrote it — not sanitized into press-release voice
@@ -210,6 +224,7 @@ Tell the user — ≤3 sentences:
 - **BRIEF.md missing** → Step 1, tell user to re-run creative-brief via `/aria:next`.
 - **VISION.md already exists** → ask user (Step 1): overwrite, refine, or cancel.
 - **`get_trending_artists` returns `isError: true`** → note it in VISION.md's peer-landscape-context section, continue with the interview and `search_artists`. Don't block the whole phase on one tool.
+- **Focus-track audio tools return `isError: true`** → note that focus-track audio analysis was unavailable, then ask the fallback sonic-direction question. Do not claim Cynite grounding.
 - **User names a reference that `search_artists` can't find** → Step 4 case 4, ask user to keep-as-unverified or drop. Never silently substitute.
 - **User refuses to name references and has nothing to say about story** → write the thinnest possible VISION.md with explicit "not provided" notes in the affected sections. Don't fabricate to fill space.
 - **All MCP tools fail (auth expired)** → save partial as `VISION.draft.md` with a header note, tell user to run `/mcp` and re-invoke.

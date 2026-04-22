@@ -9,6 +9,7 @@
  *   3. Every "mcp__aria__*" tool referenced in skill allowed-tools
  *      lists resolves against the live tools/list (skipped if no token)
  *   4. First 3 steps of /aria:start simulated against a scratch tmpdir
+ *   5. Public README documents natural-language start + slash-alias fallback
  *
  * Usage:
  *   npx tsx scripts/smoke-test.ts
@@ -37,11 +38,13 @@ const SCRIPT_DIR = path.dirname(path.resolve(__filename))
 const PLUGIN_ROOT = path.resolve(SCRIPT_DIR, '..')
 const MCP_JSON = path.join(PLUGIN_ROOT, '.mcp.json')
 const SKILLS_DIR = path.join(PLUGIN_ROOT, 'skills')
+const README = path.join(PLUGIN_ROOT, 'README.md')
 
 const DEFAULT_MCP_URL = 'https://www.patchline.ai/api/mcp/v1'
 const MCP_URL = process.env.PATCHLINE_MCP_URL || DEFAULT_MCP_URL
 const MCP_TOKEN = process.env.PATCHLINE_MCP_TOKEN || ''
 const FETCH_TIMEOUT_MS = 10_000
+const MCP_REACHABILITY_TIMEOUT_MS = 30_000
 
 // Tool-namespace prefix used by the Claude MCP client.
 const TOOL_PREFIX = 'mcp__aria__'
@@ -130,7 +133,10 @@ async function fetchWithTimeout(
 async function checkMcpReachable() {
   const name = 'MCP endpoint reachable'
   try {
-    const res = await fetchWithTimeout(MCP_URL, { method: 'GET' })
+    // Amplify SSR can cold-start just as this check runs. Give the bare
+    // endpoint probe a longer budget than metadata/tool checks so smoke tests
+    // do not false-fail while still treating 404 as terminal.
+    const res = await fetchWithTimeout(MCP_URL, { method: 'GET' }, MCP_REACHABILITY_TIMEOUT_MS)
     // 200 OK (unlikely without MCP handshake), 401 Unauthorized, or 400/405
     // all mean the server is alive. Connection refused / DNS failure throws.
     if (res.status === 200 || res.status === 401 || res.status === 400 || res.status === 405) {
@@ -460,6 +466,9 @@ function checkStartSimulation() {
       '- Working title: Aria Smoke Test',
       '- Distribution: self_releasing',
       '- Composition status: complete',
+      '- Focus track asset ID: pending',
+      '- Audio status: required',
+      '- Cynite status: missing',
       '',
     ].join('\n')
     fs.writeFileSync(projectMd, projectBody, 'utf8')
@@ -470,7 +479,7 @@ function checkStartSimulation() {
       '',
       '## Current phase',
       '',
-      '`creative-brief` — pending.',
+      '`audio-intake` — pending.',
       '',
       '## Completed phases',
       '',
@@ -483,6 +492,18 @@ function checkStartSimulation() {
       '## Composition status',
       '',
       '`complete`',
+      '',
+      '## Focus track asset ID',
+      '',
+      '`pending`',
+      '',
+      '## Audio status',
+      '',
+      '`required`',
+      '',
+      '## Cynite status',
+      '',
+      '`missing`',
       '',
     ].join('\n')
     fs.writeFileSync(stateMd, stateBody, 'utf8')
@@ -499,13 +520,34 @@ function checkStartSimulation() {
 
     const stateRead = fs.readFileSync(stateMd, 'utf8')
     if (!/Current phase/.test(stateRead)) failures.push('STATE.md missing Current phase section')
-    if (!/creative-brief/.test(stateRead)) failures.push('STATE.md missing creative-brief pointer')
+    if (!/audio-intake/.test(stateRead)) failures.push('STATE.md missing audio-intake pointer for complete composition')
+    if (!/Cynite status/.test(stateRead)) failures.push('STATE.md missing Cynite status section')
 
     if (failures.length === 0) {
       record(name, 'pass', `scratch at ${tmpRoot}`)
     } else {
       record(name, 'fail', failures.join('; '))
     }
+  } catch (e: any) {
+    record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
+  }
+}
+
+function checkPublicDocsStartGuidance() {
+  const name = 'public docs avoid slash-command-only start'
+  try {
+    const readme = fs.readFileSync(README, 'utf8')
+    const hasNaturalLanguageStart = /Start Aria for this artist: <Spotify artist profile URL>/.test(readme)
+    const hasSlashFallback = /unknown command/.test(readme) && /natural language/.test(readme)
+    if (!hasNaturalLanguageStart) {
+      record(name, 'fail', 'README missing natural-language start instruction')
+      return
+    }
+    if (!hasSlashFallback) {
+      record(name, 'fail', 'README does not warn that /aria:start may not be a slash alias')
+      return
+    }
+    record(name, 'pass', 'README documents natural-language start + slash-alias fallback')
   } catch (e: any) {
     record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
   }
@@ -583,6 +625,9 @@ async function main() {
 
   section('4. /aria:start simulation')
   checkStartSimulation()
+
+  section('5. public docs start guidance')
+  checkPublicDocsStartGuidance()
 
   printReport()
   cleanup()

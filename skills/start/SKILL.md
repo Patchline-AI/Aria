@@ -1,6 +1,6 @@
 ---
 name: start
-description: Bootstrap a new Aria music-project workspace. Use when the user starts planning a new single, EP, album, or campaign and wants AI guidance from idea to launch. Creates `.patchline/` in the current directory, initializes PROJECT.md + STATE.md grounded in real Patchline artist intelligence, and routes to the creative-brief phase. Invoke via `/aria:start`.
+description: Bootstrap a new Aria music-project workspace. Use when the user starts planning a new single, EP, album, or campaign and wants AI guidance from idea to launch. Creates `.patchline/` in the current directory, initializes PROJECT.md + STATE.md grounded in real Patchline artist intelligence, and routes finished-track projects to audio-intake before creative strategy. Invoke via `/aria:start` when available, or from natural language.
 argument-hint: "[optional artist name or Spotify URL to pre-fill identity]"
 model: claude-sonnet-4-6
 allowed-tools:
@@ -21,7 +21,7 @@ Bootstrap a new Aria-managed project workspace for the user. By the end of this 
 2. `.patchline/PROJECT.md` — artist identity, project name, distribution mode
 3. `.patchline/STATE.md` — the ledger that tracks lifecycle phase progression
 4. `.patchline/artifacts/` — empty subdirectory for phase outputs
-5. The user clearly routed to the next step (the `creative-brief` skill, invoked via `/aria:next`)
+5. The user clearly routed to the next step: `audio-intake` when finished audio exists, otherwise `creative-brief`
 
 ## Supporting files
 
@@ -58,7 +58,7 @@ Prefer the Spotify artist profile because `analyze_url` can parse it immediately
 
 ### If `$ARGUMENTS` contains a Spotify URL or artist handle
 
-Call the MCP tool `mcp__aria__analyze_url` with the URL. Today this tool is a fast dispatcher: it returns URL type, platform ID, clean URL, and `suggestedActions[]`; it does **not** look up the artist name by itself.
+Call the MCP tool `mcp__aria__analyze_url` with the URL. For Spotify artist URLs it returns URL type, platform ID, clean URL, `suggestedActions[]`, and a read-only Soundcharts identity card when available.
 
 If the result is `type: "spotify_artist"`:
 
@@ -66,7 +66,7 @@ If the result is `type: "spotify_artist"`:
 2. Immediately call `mcp__aria__add_artist` with `{ "artist_url": cleanUrl }`.
 3. Use the returned canonical artist name, Patchline artist ID, Soundcharts ID, genres, and enrichment status as the identity source.
 4. Then call `mcp__aria__get_artist_intelligence` with the canonical artist name returned by `add_artist`.
-5. If enrichment is still pending and full intelligence is not available yet, continue with the canonical identity from `add_artist` and note in `PROJECT.md` that intelligence enrichment is pending.
+5. If enrichment is still pending and full intelligence is not available yet, continue with the canonical identity from `add_artist` and note in `PROJECT.md` that intelligence enrichment is pending. If enrichment is complete but genres are empty, say "Soundcharts returned no genre classification yet" instead of "pending."
 
 This mirrors the Telegram link-handler flow: pasted Spotify artist URL first resolves through Patchline/Soundcharts, then Aria asks project questions. Never bounce back with "what is your artist name?" after a valid Spotify artist URL.
 
@@ -83,7 +83,7 @@ Once you have a candidate artist, call `mcp__aria__get_artist_intelligence` with
 - streaming metrics (monthly listeners, social followers)
 - a cached `bio` if one exists
 
-Capture this data — you'll use it to pre-fill PROJECT.md. **If `get_artist_intelligence` returns `found: false`**, do not fabricate. Ask the user: "I don't have intelligence cached for this artist yet. Should I add them first via `/aria:next` → `creative-brief` (which will call `add_artist`), or do you want to proceed with a manual-identity project?"
+Capture this data — you'll use it to pre-fill PROJECT.md. **If `get_artist_intelligence` returns `found: false` after a successful `add_artist`**, do not fabricate and do not ask for the artist name again. Continue with the canonical identity from `add_artist`, write `Artist enrichment status: pending`, and tell the user the Soundcharts enrichment is still landing. If the user only gave a plain name and no URL, ask for the Spotify artist profile URL so you can add the exact artist safely.
 
 ## Step 3: Capture project name, distribution mode, composition status
 
@@ -91,14 +91,14 @@ Ask the user three short questions — one at a time, not in a wall:
 
 1. **"What's the project called?"** Accept anything — "Untitled EP", "Song #3", "My 2026 Summer Single". If they don't have a name, default to `Untitled Project (YYYY-MM-DD)`.
 2. **"Are you self-releasing or working with a label on this one?"** The answer maps to `distributionMode` — either `self_releasing` or `with_label`. This materially changes downstream phases (label flows skip some content-autogeneration, add label-coordination tasks).
-3. **"Do you have the music made, or are you starting from scratch?"** The answer maps to `compositionStatus`:
-   - `complete` — final mixes/masters exist, just need to plan the release + promo
-   - `partial` — rough sketches or demos exist, still writing
-   - `writing` — starting from zero, no audio yet
-   
-   This determines whether the `songwriting-brief` phase is skipped. If `complete`, the chain goes `moodboard → release-plan` (skip songwriting). If `partial` or `writing`, songwriting-brief is included — Aria can help shape the song itself, not just the release around it.
+3. **"Do you already have the final track audio ready to upload, are you still working from demos, or are you starting from scratch?"** The answer maps to `compositionStatus`:
+   - `complete` - final mixes/masters exist and Aria must route to `audio-intake` before creative strategy
+   - `partial` - rough sketches or demos exist, still writing
+   - `writing` - starting from zero, no audio yet
 
-Do not ask for release date, genre, or targets here. Those belong in the `release-plan` phase. Resist the urge to front-load.
+   This determines the first gate. If `complete`, the next phase is `audio-intake`, then `creative-brief`; Aria must not ask the user to describe the sound before trying Cynite. If `partial` or `writing`, start with `creative-brief` and include `songwriting-brief` later.
+
+Do not ask for release date, genre, targets, or sound description here. Those belong after the audio gate and brief. Resist the urge to front-load.
 
 ## Step 4: Create the workspace
 
@@ -120,6 +120,7 @@ Use the Write tool to create these files in order:
 - Career stage: [careerStage from MCP]
 - Country: [countryCode]
 - Current monthly listeners (Spotify): [from streaming metrics]
+- Artist enrichment status: [pending OR complete OR failed; if complete with empty genres, write "complete - Soundcharts returned no genre classification yet"]
 
 ## Project scope
 
@@ -127,6 +128,9 @@ Use the Write tool to create these files in order:
 - Working title: <project-name from Step 3 Q1>
 - Distribution: <single value from Step 3 Q2: self_releasing OR with_label>
 - Composition status: <single value from Step 3 Q3: complete OR partial OR writing>
+- Focus track asset ID: <pending if composition status is complete, otherwise not_required>
+- Audio status: <required if composition status is complete, otherwise not_required>
+- Cynite status: <missing if composition status is complete, otherwise not_required>
 
 **IMPORTANT for Claude writing this file:** substitute each `<placeholder>` with the actual user-chosen value. Never write the `A | B | C` option-list form — always pick the single value.
 
@@ -144,7 +148,7 @@ Artifacts for each phase live under `.patchline/artifacts/`. The lifecycle progr
 
 ## Current phase
 
-`creative-brief` — pending. Run `/aria:next` to begin.
+`<audio-intake if composition status is complete, otherwise creative-brief>` — pending. Run `/aria:next` to begin.
 
 ## Completed phases
 
@@ -164,13 +168,29 @@ Artifacts for each phase live under `.patchline/artifacts/`. The lifecycle progr
 
 ## Composition status
 
-`<substitute a single value from Step 3 Q3: complete OR partial OR writing>` — set at bootstrap. Determines whether `songwriting-brief` phase runs. If `complete`, chain skips directly from `moodboard` to `release-plan`.
+`<substitute a single value from Step 3 Q3: complete OR partial OR writing>` — set at bootstrap. If `complete`, `audio-intake` must run before creative-brief and `songwriting-brief` is skipped later.
+
+## Focus track asset ID
+
+`<pending if composition status is complete, otherwise not_required>` — set at bootstrap; `audio-intake` updates this after upload or existing-asset confirmation.
+
+## Audio status
+
+`<required if composition status is complete, otherwise not_required>` — valid values: `missing`, `required`, `upload_requested`, `uploaded`, `not_required`.
+
+## Cynite status
+
+`<missing if composition status is complete, otherwise not_required>` — valid values: `missing`, `cynite_pending`, `cynite_complete`, `cynite_failed`, `not_required`.
 
 **IMPORTANT for Claude writing this file:** write the SINGLE value the user chose, not the option list. Example: if the user said "self-releasing" in Q2, the first line becomes:
 ```
 `self_releasing` — set at bootstrap, can be changed later via hand-edit.
 ```
 Never write the literal `A | B | C` placeholder form — that breaks every downstream skill that parses `Distribution mode` / `Composition status` via exact-string match.
+
+Also substitute the `Current phase` placeholder:
+- If composition status is `complete`, write exactly `` `audio-intake` — pending. Run `/aria:next` to begin. ``
+- If composition status is `partial` or `writing`, write exactly `` `creative-brief` — pending. Run `/aria:next` to begin. ``
 
 ---
 
@@ -195,9 +215,15 @@ Append this line to `.patchline/STATE.md` under a new `## Patchline persistence`
 
 Tell the user — in ≤3 sentences:
 
-> Workspace created at `.patchline/`. Identified you as **[artist name]** ([career stage], [top genre], [monthly listeners] monthly listeners). Run `/aria:next` to start the creative brief — I'll ask a few questions and produce `BRIEF.md` grounded in your Patchline catalog.
+If `compositionStatus` is `complete`, tell the user:
 
-Do not continue into the creative-brief flow automatically. Let the user invoke it explicitly with `/aria:next`. (Rationale: some users will want to edit PROJECT.md by hand first, change distribution mode, rename the project. Give them that beat.)
+> Workspace created at `.patchline/`. Identified you as **[artist name]** ([career stage], [top genre or "Soundcharts returned no genre classification yet"], [monthly listeners] monthly listeners). Run `/aria:next` to start audio-intake — I'll create a secure upload link, confirm the track, and wait for Cynite before asking sonic questions.
+
+If `compositionStatus` is `partial` or `writing`, tell the user:
+
+> Workspace created at `.patchline/`. Identified you as **[artist name]** ([career stage], [top genre or "Soundcharts returned no genre classification yet"], [monthly listeners] monthly listeners). Run `/aria:next` to start the creative brief — I'll ask a few focused project questions and produce `BRIEF.md`.
+
+Do not continue into the next phase automatically. Let the user invoke it explicitly with `/aria:next`. (Rationale: some users will want to edit PROJECT.md by hand first, change distribution mode, rename the project. Give them that beat.)
 
 ## Error handling
 
@@ -212,7 +238,7 @@ Do not continue into the creative-brief flow automatically. Let the user invoke 
 ### Cold start, artist in roster
 
 ```
-User: /aria:start vintage culture
+User: Start Aria for this artist: https://open.spotify.com/artist/<id>
 You (after calling get_artist_intelligence):
   Found Vintage Culture in your roster — Brazilian DJ/producer, mainstream
   career stage, 12.4M Spotify monthly listeners.
@@ -222,11 +248,13 @@ User: My next single, "Midnight Oil"
 You: Are you self-releasing or working with a label on this one?
 User: Spinnin'
 You: Got it — with_label mode.
+You: Do you already have the final track audio ready to upload, are you still working from demos, or are you starting from scratch?
+User: I have the final track.
   (creates workspace)
   Workspace created at .patchline/. Identified you as Vintage Culture
-  (mainstream, house, 12.4M listeners). Run /aria:next to start the
-  creative brief — I'll ask a few questions and produce BRIEF.md
-  grounded in your Patchline catalog.
+  (mainstream, house, 12.4M listeners). Run /aria:next to start
+  audio-intake — I'll create a secure upload link, confirm the track,
+  and wait for Cynite before asking sonic strategy questions.
 ```
 
 ### Cold start, new artist not in roster
@@ -236,9 +264,9 @@ User: /aria:start
 You: Paste your Spotify artist profile URL. If you don't have one, tell me your artist name.
 User: Riverbend Echo
 You (calls get_artist_intelligence → found:false):
-  I don't have intelligence cached for Riverbend Echo yet. Should I add
-  them first via /aria:next → creative-brief (which will call
-  add_artist), or do you want to proceed with a manual-identity project?
+  I don't have intelligence cached for Riverbend Echo yet. Paste the
+  Spotify artist profile URL and I'll add the exact artist before
+  bootstrapping the workspace. I won't guess from web search.
 ```
 
 ### Workspace already exists

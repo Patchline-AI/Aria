@@ -1,6 +1,6 @@
 ---
 name: next
-description: Advance an Aria-managed project to its next lifecycle phase. Reads `.patchline/STATE.md`, determines which phase should run, and routes into that phase's skill. Respects the composition-status branch — projects with finished music skip the songwriting-brief phase. Handles state drift (STATE.md says phase X but artifact X.md is missing) by re-running the incomplete phase rather than advancing. Invoke via `/aria:next`.
+description: "Advance an Aria-managed project to its next lifecycle phase. Reads `.patchline/STATE.md`, determines which phase should run, and routes into that phase's skill. Respects the composition-status branch: projects with finished music must pass audio-intake before creative strategy and skip songwriting-brief later. Handles state drift by re-running incomplete phases rather than advancing. Invoke via `/aria:next`."
 argument-hint: "[optional — no arguments expected; reads state from .patchline/]"
 model: claude-sonnet-4-6
 prerequisites:
@@ -29,13 +29,14 @@ You never skip a phase silently. You never invent a phase order that deviates fr
 
 - [`../../CLAUDE.md`](../../CLAUDE.md) — voice, workspace contract, skill-chaining overview
 - [`../start/SKILL.md`](../start/SKILL.md) — predecessor, creates the workspace you read
-- [`../creative-brief/SKILL.md`](../creative-brief/SKILL.md), [`../vision-story/SKILL.md`](../vision-story/SKILL.md), [`../moodboard/SKILL.md`](../moodboard/SKILL.md), [`../songwriting-brief/SKILL.md`](../songwriting-brief/SKILL.md), [`../release-plan/SKILL.md`](../release-plan/SKILL.md), [`../rollout/SKILL.md`](../rollout/SKILL.md), [`../pitch-kit/SKILL.md`](../pitch-kit/SKILL.md), [`../smart-link/SKILL.md`](../smart-link/SKILL.md) — the phase skills you dispatch to
+- [`../audio-intake/SKILL.md`](../audio-intake/SKILL.md), [`../creative-brief/SKILL.md`](../creative-brief/SKILL.md), [`../vision-story/SKILL.md`](../vision-story/SKILL.md), [`../moodboard/SKILL.md`](../moodboard/SKILL.md), [`../songwriting-brief/SKILL.md`](../songwriting-brief/SKILL.md), [`../release-plan/SKILL.md`](../release-plan/SKILL.md), [`../rollout/SKILL.md`](../rollout/SKILL.md), [`../pitch-kit/SKILL.md`](../pitch-kit/SKILL.md), [`../smart-link/SKILL.md`](../smart-link/SKILL.md) — the phase skills you dispatch to
 
 ## The canonical chain
 
 ```
 start
-  → creative-brief
+  → [audio-intake — REQUIRED if compositionStatus == complete]
+    → creative-brief
     → vision-story
       → moodboard
         → [songwriting-brief — SKIPPED if compositionStatus == complete]
@@ -45,7 +46,7 @@ start
                 → smart-link
 ```
 
-`start` is not a phase the user re-runs via `/aria:next` — it's a separate entry point. Your responsibility starts at `creative-brief` and ends at `smart-link`.
+`start` is not a phase the user re-runs via `/aria:next` — it's a separate entry point. Your responsibility starts at `audio-intake` for completed-track projects, otherwise `creative-brief`, and ends at `smart-link`.
 
 ## Step 1: Check the workspace exists
 
@@ -59,11 +60,12 @@ Run `ls .patchline/PROJECT.md` via Bash. Three outcomes:
 
 Use Read on these three files:
 
-- `.patchline/STATE.md` — extract: `Current phase:`, `Completed phases:`, `Composition status:`, `Distribution mode:`
+- `.patchline/STATE.md` — extract: `Current phase:`, `Completed phases:`, `Composition status:`, `Distribution mode:`, `Focus track asset ID:`, `Audio status:`, `Cynite status:`
 - `.patchline/PROJECT.md` — extract: artist name, project name (you'll use these in the hand-off message)
 - `ls .patchline/artifacts/` via Bash — capture the actual list of artifact files on disk
 
 Normalize the current phase string. Valid values:
+- `audio-intake`
 - `creative-brief`
 - `vision-story`
 - `moodboard`
@@ -74,7 +76,7 @@ Normalize the current phase string. Valid values:
 - `smart-link`
 - `complete` (the chain is done)
 
-If `STATE.md` has a `Current phase:` value outside this set, STOP and tell the user: "STATE.md has an unrecognized current phase: `<value>`. Valid phases are: creative-brief, vision-story, moodboard, songwriting-brief, release-plan, rollout, pitch-kit, smart-link, or complete. Edit STATE.md to set a valid phase, then re-invoke."
+If `STATE.md` has a `Current phase:` value outside this set, STOP and tell the user: "STATE.md has an unrecognized current phase: `<value>`. Valid phases are: audio-intake, creative-brief, vision-story, moodboard, songwriting-brief, release-plan, rollout, pitch-kit, smart-link, or complete. Edit STATE.md to set a valid phase, then re-invoke."
 
 ## Step 3: Detect state drift
 
@@ -84,6 +86,7 @@ Build the expected-artifacts list from `Completed phases:` in STATE.md:
 
 | Completed phase | Expected artifact file |
 |---|---|
+| audio-intake | `AUDIO_INTAKE.md` |
 | creative-brief | `BRIEF.md` |
 | vision-story | `VISION.md` |
 | moodboard | `MOODBOARD.md` |
@@ -104,13 +107,13 @@ If neither drift case applies, proceed to Step 4.
 
 Read `Composition status:` from STATE.md. Values and their effects on the chain:
 
-- `complete` → after `moodboard`, the next phase is `release-plan` (songwriting-brief is SKIPPED entirely — not re-run, not deferred, just not in the chain for this project).
+- `complete` → `audio-intake` runs before `creative-brief`; after `moodboard`, the next phase is `release-plan` (songwriting-brief is SKIPPED entirely — not re-run, not deferred, just not in the chain for this project).
 - `partial` or `writing` → after `moodboard`, the next phase is `songwriting-brief`, then `release-plan`.
 - missing / unrecognized → STOP. Tell the user: "STATE.md is missing `Composition status:` (valid: complete, partial, writing). Set it by hand-editing STATE.md, then re-invoke."
 
 Store the effective chain for this invocation:
 
-- If `complete`: `[creative-brief, vision-story, moodboard, release-plan, rollout, pitch-kit, smart-link]`
+- If `complete`: `[audio-intake, creative-brief, vision-story, moodboard, release-plan, rollout, pitch-kit, smart-link]`
 - If `partial` or `writing`: `[creative-brief, vision-story, moodboard, songwriting-brief, release-plan, rollout, pitch-kit, smart-link]`
 
 ## Step 5: Pick the phase to run
@@ -119,7 +122,7 @@ Walk the effective chain in order. Find the first phase that is NOT in `Complete
 
 Edge cases:
 
-- **All phases complete** → tell the user: "Aria chain complete — all 8 phases shipped (or 7 if you skipped songwriting-brief). Your `.patchline/artifacts/` holds BRIEF, VISION, MOODBOARD, [SONGWRITING,] RELEASE_PLAN, ROLLOUT, PITCH_KIT, LAUNCH. Follow-ups worth considering: (a) `/aria:next` after editing STATE.md back to a phase to re-run it, (b) wait for PR #468 and re-run `/aria:start` to sync artifacts to your Patchline Project, (c) use the pitch kit — the plugin drafted them but you still need to send them." Do not run anything.
+- **All phases complete** → tell the user: "Aria chain complete — all required phases shipped (audio-intake only appears for finished-track projects; songwriting-brief is skipped for finished-track projects). Your `.patchline/artifacts/` holds AUDIO_INTAKE if required, BRIEF, VISION, MOODBOARD, [SONGWRITING,] RELEASE_PLAN, ROLLOUT, PITCH_KIT, LAUNCH. Follow-ups worth considering: (a) `/aria:next` after editing STATE.md back to a phase to re-run it, (b) wait for project-sync tools before syncing artifacts into Patchline Projects, (c) use the pitch kit — the plugin drafted them but you still need to send them." Do not run anything.
 - **`Current phase:` in STATE.md doesn't match the first-incomplete walk result** → trust the walk. The chain is the source of truth, `Current phase:` is a convenience pointer that can go stale if the user hand-edits `Completed phases:`. Tell the user: "STATE.md's `Current phase:` pointer was stale (`<stale value>`). Running `<actual next phase>` based on completed-phases ledger."
 
 ## Step 6: Announce-and-stop (NOT inline execution)
@@ -188,8 +191,8 @@ User: /aria:vision-story
 
 ```
 User: /aria:next
-You (reads STATE.md — Completed phases: creative-brief, vision-story,
-     moodboard; Composition status: complete; Step 5 walk with `complete`
+You (reads STATE.md — Completed phases: audio-intake, creative-brief,
+     vision-story, moodboard; Composition status: complete; Step 5 walk with `complete`
      chain → next phase is release-plan):
 
   (updates STATE.md Current phase: release-plan)
@@ -226,7 +229,7 @@ You (reads STATE.md — Completed phases: creative-brief, vision-story,
 
 ```
 User: /aria:next
-You (reads STATE.md — Current phase: complete, all 8 phases in
+You (reads STATE.md — Current phase: complete, all required phases in
      Completed phases):
   Aria chain complete — BRIEF, VISION, MOODBOARD, SONGWRITING,
   RELEASE_PLAN, ROLLOUT, PITCH_KIT, LAUNCH all shipped for "Midnight

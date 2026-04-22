@@ -1,6 +1,6 @@
 ---
 name: creative-brief
-description: "First lifecycle phase after /aria:start. Produces a concise BRIEF.md that captures the artist's identity, the project's intent, and the success criteria for this specific release — grounded in real Patchline artist intelligence. Use when STATE.md shows `current phase: creative-brief`. Typically invoked via `/aria:next` right after `/aria:start`."
+description: "Creative strategy phase after /aria:start, or after audio-intake when the user already has a track. Produces BRIEF.md capturing the artist's identity, release job, audience, success metric, and non-negotiables. Use when STATE.md shows `current phase: creative-brief`."
 argument-hint: "[optional — no arguments expected; reads context from .patchline/]"
 model: claude-sonnet-4-6
 prerequisites:
@@ -34,9 +34,11 @@ You will:
 
 Use Read on these files (in order, stop at first miss):
 
-- `.patchline/PROJECT.md` — extract: artist name, project name, distribution mode, genres, career stage, monthly listeners, country
-- `.patchline/STATE.md` — confirm `Current phase: creative-brief`. If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not creative-brief. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
+- `.patchline/PROJECT.md` — extract: artist name, project name, distribution mode, genres, career stage, monthly listeners, country, composition status, focus track asset ID
+- `.patchline/STATE.md` — confirm `Current phase: creative-brief`. Also read `Composition status`, `Focus track asset ID`, `Audio status`, and `Cynite status`. If it's something else, STOP and tell the user: "STATE.md says we're in phase `<X>`, not creative-brief. Run `/aria:next` to invoke the correct phase, or edit STATE.md if this is intentional."
 - `.patchline/artifacts/BRIEF.md` — if it ALREADY exists, ask the user: "A BRIEF.md already exists. Overwrite it, or refine it in place?" Do not silently overwrite.
+
+If `Composition status` is `complete` and `Cynite status` is not `cynite_complete`, STOP. Tell the user: "You said the track exists, but audio-intake has not completed Cynite yet. Run `/aria:next` to route back to audio-intake, or `/aria:audio-intake` directly if STATE.md already points there. I won't ask you to describe the sound while Patchline can analyze it."
 
 ## Step 2: Ground in artist data
 
@@ -46,6 +48,7 @@ You already have basic identity from PROJECT.md. Pull fresher context:
 
 - `mcp__aria__get_artist_intelligence` with the artist name → re-pulls current streaming metrics, social stats, genres, career stage. Use the freshest values (MCP data may have updated since `/aria:start`).
 - `mcp__aria__get_bio` with the artist name → if a cached bio exists, extract 1–2 sentences for the brief. If it returns "no cached bio", don't worry — the `creative-brief` is supposed to GENERATE a short summary; `get_bio` just gives you a head start if one exists.
+- If `Focus track asset ID` is not `pending` or `not_required`, call `mcp__aria__get_asset` with that asset ID. Capture Cynite/audio-feature summary for the Data sources section; do not turn it into a subjective sound interview.
 
 ### Conditionally call
 
@@ -63,13 +66,13 @@ Ask questions ONE AT A TIME, not as a wall. After each answer, capture the answe
 
 ### The four pillars (ask about each, concisely)
 
-1. **"What's this project trying to do?"** — one sentence. Example answers: "introduce my new sonic direction", "re-engage my fans after an 18-month gap", "tee up the album drop in Q3", "prove I can cross over from house into mainstream pop". You want the artist's intent in their words.
+1. **"What job does this release need to do for you right now?"** — one sentence. Example answers: "re-engage listeners after a quiet year", "prove this cumbia/boom-bap lane is real", "tee up an EP", "give curators one clean entry point". You want the artist's business/creative intent in their words.
 
 2. **"Who is this for?"** — primary listener. Accept anything: "my existing fans", "club DJs", "sync supervisors", "festival bookers", "playlist curators who love X". Don't push for a demographic — "who" in music is often psychographic or taste-based.
 
 3. **"What's the north-star success metric?"** — one concrete, falsifiable target. Examples: "land on 3 editorial playlists", "100k streams in month 1", "get featured in Mixmag", "be picked up by the label's A&R". If the artist gives a vague answer ("do well"), push once: "Can you pin a number or a specific outcome on that?"
 
-4. **"Anything non-negotiable about this release?"** — the must-haves. Could be musical (no ghostwriters, no features), business (independent release only, publishing retained), or narrative (don't call it a comeback, don't mention previous project name). One-shot question — take whatever they give you.
+4. **"What cannot be compromised?"** — the must-haves. Could be musical (no ghostwriters, no features), business (publishing retained, self-release only), audience (do not alienate existing listeners), or narrative (don't call it a comeback). One-shot question — take whatever they give you.
 
 ### Optional 5th question
 
@@ -187,7 +190,7 @@ You (reads STATE.md, current phase = creative-brief; reads PROJECT.md;
 
   Let me ask four short questions to sharpen the brief.
 
-  1/4 — What's this project trying to do?
+  1/4 — What job does this release need to do for you right now?
 
 User: Introduce the new darker sound I've been working on. Less festival,
       more 2am club.
@@ -195,7 +198,7 @@ You: Got it. 2/4 — Who is this for?
 User: Club DJs and my existing fans who like the deeper tracks
 You: 3/4 — What's the north-star success metric?
 User: Land on Spotify's Night Rider editorial playlist
-You: Concrete — good. 4/4 — Anything non-negotiable?
+You: Concrete — good. 4/4 — What cannot be compromised?
 User: No vocal features. This is a producer statement.
 You (writes BRIEF.md with all 4 pillars grounded, updates STATE.md):
   Brief written to .patchline/artifacts/BRIEF.md. It captures your intent

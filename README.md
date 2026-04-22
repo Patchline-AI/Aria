@@ -7,7 +7,7 @@
 
 **Ship a music release end-to-end without leaving Claude.**
 
-Aria is a Claude Code plugin that walks artists and managers through eight lifecycle phases — from raw idea to pitched, released, and live on a smart link. Every artifact it produces is grounded in your real catalog and real streaming data via the Patchline MCP. No hallucinated playlists. No invented metrics.
+Aria is a Claude Code plugin that walks artists and managers through a release lifecycle from raw idea or finished track to pitched, released, and live on a smart link. Every artifact it produces is grounded in your real catalog and real streaming data via the Patchline MCP. No hallucinated playlists. No invented metrics.
 
 ```bash
 # In Claude Code
@@ -37,9 +37,9 @@ search your Patchline roster/index.
 
 ## What you get
 
-- **Eight lifecycle skills** — `creative-brief`, `vision-story`, `moodboard`, `songwriting-brief`, `release-plan`, `rollout`, `pitch-kit`, `smart-link`
+- **Nine lifecycle skills** — `audio-intake`, `creative-brief`, `vision-story`, `moodboard`, `songwriting-brief`, `release-plan`, `rollout`, `pitch-kit`, `smart-link`
 - **Two lifecycle skills** — `aria:start` bootstraps a project, `aria:next` advances to the next phase
-- **The `aria` MCP server** — 18 tools spanning catalog management, playlist targeting with Cynite sonic signatures, Soundcharts-backed artist intelligence, pitch generation, and smart-link creation
+- **The `aria` MCP server** — 20 tools spanning catalog management, secure upload handoff, playlist targeting with Cynite sonic signatures, Soundcharts-backed artist intelligence, pitch generation, and smart-link creation
 - **A `.patchline/` workspace** — plaintext markdown artifacts you can hand-edit, version-control, or forward to a collaborator
 
 ## How it's different from "ChatGPT for music"
@@ -54,8 +54,9 @@ If you've seen a GSD-style phased plugin — same discipline. Different verb set
 2. Run `/reload-plugins` and approve the Aria MCP server if prompted
 3. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected
 4. Say `Start Aria for this artist: <Spotify artist profile URL>` — Aria resolves the artist through Patchline/Soundcharts, asks for your project name, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
-5. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. The first run produces `BRIEF.md`.
-6. Keep saying `Continue Aria` until your smart link is live.
+5. If you already have the finished track, Aria routes to `audio-intake` first so you can upload/confirm the focus track and wait for Cynite before sonic strategy questions.
+6. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. After audio is settled, the next strategy run produces `BRIEF.md`.
+7. Keep saying `Continue Aria` until your smart link is live.
 
 Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by hand if Aria misses something, then `/aria:next` regenerates the downstream outputs.
 

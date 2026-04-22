@@ -4,6 +4,17 @@ All notable changes to Aria by Patchline are documented here. Format follows [Ke
 
 ## [Unreleased]
 
+## [0.1.2-alpha] — 2026-04-21
+
+### Added
+- Added `audio-intake`, a finished-track gate that creates a secure upload handoff, confirms the focus asset, triggers Patchline audio processing + Cynite, and records the focus track before creative strategy phases.
+- Added MCP upload handoff tools: `get_asset_upload_link` and `confirm_asset_upload`.
+
+### Changed
+- Finished-track onboarding now routes to `audio-intake` before `creative-brief`.
+- `creative-brief` and `vision-story` use focus-track/Cynite data when available instead of asking artists to describe sound from scratch.
+- Artist intelligence wording now distinguishes "enrichment complete but sparse upstream data" from "enrichment pending."
+
 ## [0.1.1-alpha] — 2026-04-21
 
 ### Changed
@@ -29,6 +40,7 @@ Initial public release.
 - First version published to the Claude Code plugin marketplace as `patchline-ai/aria`
 - Requires a Patchline AI account (free tier available)
 
-[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.1.1-alpha...HEAD
+[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.1.2-alpha...HEAD
+[0.1.2-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.1-alpha...v0.1.2-alpha
 [0.1.1-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.0-alpha...v0.1.1-alpha
 [0.1.0-alpha]: https://github.com/Patchline-AI/aria/releases/tag/v0.1.0-alpha
