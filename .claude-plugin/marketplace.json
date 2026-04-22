@@ -8,7 +8,7 @@
     {
       "name": "aria",
       "description": "Guided music-release workflow from idea to smart link. Powered by the aria MCP.",
-      "version": "0.1.0-alpha",
+      "version": "0.1.1-alpha",
       "source": "./"
     }
   ]

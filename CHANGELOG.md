@@ -4,6 +4,13 @@ All notable changes to Aria by Patchline are documented here. Format follows [Ke
 
 ## [Unreleased]
 
+## [0.1.1-alpha] — 2026-04-21
+
+### Changed
+- Clarified first-run installation and reload steps for Claude Code.
+- Refined public positioning for Aria by Patchline and moved future skill ideas out of public README copy.
+- Updated `/aria:start` guidance to prefer Spotify artist profile URLs and avoid web-search fallback when MCP is unavailable.
+
 ## [0.1.0-alpha] — 2026-04-21
 
 Initial public release.
@@ -22,5 +29,6 @@ Initial public release.
 - First version published to the Claude Code plugin marketplace as `patchline-ai/aria`
 - Requires a Patchline AI account (free tier available)
 
-[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.1.0-alpha...HEAD
+[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.1.1-alpha...HEAD
+[0.1.1-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.0-alpha...v0.1.1-alpha
 [0.1.0-alpha]: https://github.com/Patchline-AI/aria/releases/tag/v0.1.0-alpha
