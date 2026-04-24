@@ -5,9 +5,9 @@
   "homepage": "https://patchline.ai",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Patchline-AI/aria.git"
+    "url": "https://github.com/Patchline-AI/Aria.git"
   },
-  "bugs": "https://github.com/Patchline-AI/aria/issues",
+  "bugs": "https://github.com/Patchline-AI/Aria/issues",
   "license": "MIT",
   "author": {
     "name": "Patchline AI",

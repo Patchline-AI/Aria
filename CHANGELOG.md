@@ -50,8 +50,8 @@ Initial public release.
 - First version published to the Claude Code plugin marketplace as `patchline-ai/aria`
 - Requires a Patchline AI account (free tier available)
 
-[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.1.3-alpha...HEAD
-[0.1.3-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.2-alpha...v0.1.3-alpha
-[0.1.2-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.1-alpha...v0.1.2-alpha
-[0.1.1-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.0-alpha...v0.1.1-alpha
-[0.1.0-alpha]: https://github.com/Patchline-AI/aria/releases/tag/v0.1.0-alpha
+[Unreleased]: https://github.com/Patchline-AI/Aria/compare/v0.1.3-alpha...HEAD
+[0.1.3-alpha]: https://github.com/Patchline-AI/Aria/compare/v0.1.2-alpha...v0.1.3-alpha
+[0.1.2-alpha]: https://github.com/Patchline-AI/Aria/compare/v0.1.1-alpha...v0.1.2-alpha
+[0.1.1-alpha]: https://github.com/Patchline-AI/Aria/compare/v0.1.0-alpha...v0.1.1-alpha
+[0.1.0-alpha]: https://github.com/Patchline-AI/Aria/releases/tag/v0.1.0-alpha
