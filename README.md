@@ -83,6 +83,25 @@ The first MCP call triggers a one-time Cognito OAuth flow in your browser. Token
 
 You will never be asked for raw credentials, tokens, or AWS keys. The plugin doesn't need them.
 
+## Privacy and data handling
+
+Aria connects Claude to Patchline's hosted MCP service at
+`https://www.patchline.ai/api/mcp/v1`. When you authenticate, Claude receives a
+Patchline OAuth access token for the scopes authorized in the connection flow;
+Patchline authenticates and user-scopes each MCP tool call server-side.
+
+Data you send through Aria, and tool outputs returned to Claude, may transit
+Claude or another MCP client under that client's own terms and privacy policy.
+Patchline's collection, processing, retention, subprocessors, and AI-improvement
+rules are described in the [Patchline Privacy Policy](https://www.patchline.ai/privacy).
+
+Uploaded audio, track-analysis outputs, spectrograms, fingerprints, embeddings,
+and similar music-derived technical features may be used to provide and improve
+Patchline features such as catalog search, sonic matching, recommendations, and
+metadata quality. Patchline does not use your audio recordings, masters,
+compositions, musical works, or derivative audio or music features to train
+generative music or audio models without separate, explicit opt-in consent.
+
 ## Relationship to the Patchline web app
 
 The plugin is the **guided workspace** for planning release artifacts inside Claude. The web app at [patchline.ai](https://patchline.ai) is where your catalog, storefront, billing, and social integrations live.
@@ -105,6 +124,7 @@ Aria is designed to be composable without exposing Patchline's full internal roa
 |---|---|
 | Web app | [patchline.ai](https://patchline.ai) |
 | MCP landing | [patchline.ai/mcp](https://www.patchline.ai/mcp) |
+| Privacy policy | [patchline.ai/privacy](https://www.patchline.ai/privacy) |
 | Issues + feedback | [github.com/Patchline-AI/aria/issues](https://github.com/Patchline-AI/aria/issues) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 | Contributing | [CONTRIBUTING.md](./CONTRIBUTING.md) |
