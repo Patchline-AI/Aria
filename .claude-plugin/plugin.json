@@ -7,7 +7,7 @@
     "url": "https://patchline.ai"
   },
   "homepage": "https://patchline.ai",
-  "repository": "https://github.com/Patchline-AI/aria",
+  "repository": "https://github.com/Patchline-AI/Aria",
   "license": "MIT",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",

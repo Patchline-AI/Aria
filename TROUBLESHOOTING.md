@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and how to resolve them. If nothing here matches, open an [issue](https://github.com/Patchline-AI/aria/issues/new/choose).
+Common issues and how to resolve them. If nothing here matches, open an [issue](https://github.com/Patchline-AI/Aria/issues/new/choose).
 
 ## Authentication
 
@@ -61,7 +61,7 @@ Cause: Cognito rejected the callback URL. Aria should go through `https://www.pa
 
 ```
 /plugin uninstall aria
-/plugin marketplace add Patchline-AI/aria
+/plugin marketplace add Patchline-AI/Aria
 /plugin install aria@patchline-ai
 /reload-plugins
 ```
@@ -91,7 +91,7 @@ Cause: the track you're targeting hasn't completed track analysis yet (audio fea
 You probably forgot the marketplace-add step:
 
 ```
-/plugin marketplace add Patchline-AI/aria
+/plugin marketplace add Patchline-AI/Aria
 /plugin install aria@patchline-ai
 ```
 

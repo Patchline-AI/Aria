@@ -11,7 +11,7 @@ Aria is a Claude Code plugin that walks artists and managers through a release l
 
 ```bash
 # In Claude Code
-/plugin marketplace add Patchline-AI/aria
+/plugin marketplace add Patchline-AI/Aria
 /plugin install aria@patchline-ai
 /reload-plugins
 ```
@@ -125,7 +125,7 @@ Aria is designed to be composable without exposing Patchline's full internal roa
 | Web app | [patchline.ai](https://patchline.ai) |
 | MCP landing | [patchline.ai/mcp](https://www.patchline.ai/mcp) |
 | Privacy policy | [patchline.ai/privacy](https://www.patchline.ai/privacy) |
-| Issues + feedback | [github.com/Patchline-AI/aria/issues](https://github.com/Patchline-AI/aria/issues) |
+| Issues + feedback | [github.com/Patchline-AI/Aria/issues](https://github.com/Patchline-AI/Aria/issues) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 | Contributing | [CONTRIBUTING.md](./CONTRIBUTING.md) |
 | Code of conduct | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) |

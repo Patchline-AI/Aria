@@ -53,8 +53,8 @@ Use the [Bug Report template](./.github/ISSUE_TEMPLATE/bug_report.md) with:
 
 ```bash
 # 1. Clone the plugin
-gh repo clone Patchline-AI/aria
-cd aria
+gh repo clone Patchline-AI/Aria
+cd Aria
 
 # 2. Install locally in Claude Code
 /plugin marketplace add "file://$(pwd)"
