@@ -1,5 +1,8 @@
 {
   "name": "patchline-ai",
+  "metadata": {
+    "description": "Patchline AI plugins for Claude Code."
+  },
   "owner": {
     "name": "Patchline AI",
     "url": "https://patchline.ai"
@@ -14,7 +17,7 @@
     {
       "name": "cadence",
       "description": "Agentic coding quality, operationalized. Research, Gates, Sweeps — installable as Claude Code skills.",
-      "version": "0.1.0-alpha.2",
+      "version": "0.1.0-alpha.3",
       "source": {
         "source": "url",
         "url": "https://github.com/Patchline-AI/Cadence.git"
