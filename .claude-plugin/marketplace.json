@@ -15,7 +15,10 @@
       "name": "cadence",
       "description": "Agentic coding quality, operationalized. Research, Gates, Sweeps — installable as Claude Code skills.",
       "version": "0.1.0-alpha",
-      "source": "github:Patchline-AI/Cadence"
+      "source": {
+        "source": "github",
+        "repo": "Patchline-AI/Cadence"
+      }
     }
   ]
 }
