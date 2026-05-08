@@ -1,5 +1,8 @@
 {
   "name": "patchline-ai",
+  "metadata": {
+    "description": "Patchline AI plugins for Claude Code."
+  },
   "owner": {
     "name": "Patchline AI",
     "url": "https://patchline.ai"
