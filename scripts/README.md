@@ -5,14 +5,14 @@ Two TypeScript scripts that guard the plugin against drift:
 | Script | When to run | What it covers |
 |---|---|---|
 | `validate.ts` | Before every commit | Static structure: manifests, frontmatter, prereq graph |
-| `smoke-test.ts` | After any MCP endpoint change, or before releasing a new version | Live checks: MCP reachable, OAuth metadata, tool references, `/aria:start` filesystem ops |
+| `smoke-test.ts` | After any MCP endpoint change, or before releasing a new version | MCP reachable, OAuth metadata, tool references, moment-skill structure, README moment model, vendor-neutral copy |
 
-Both run via `tsx`. Run from anywhere — paths are resolved relative to the script location.
+Both run via `pnpm exec tsx`. Run from the repo root so the workspace lockfile and
+installed dependencies are reused consistently.
 
 ```bash
-npm install -g tsx  # one-time, if tsx isn't already on PATH
-npx tsx scripts/validate.ts
-npx tsx scripts/smoke-test.ts
+pnpm exec tsx plugin/scripts/validate.ts
+pnpm exec tsx plugin/scripts/smoke-test.ts
 ```
 
 ---
@@ -20,7 +20,7 @@ npx tsx scripts/smoke-test.ts
 ## `validate.ts`
 
 ```bash
-npx tsx scripts/validate.ts
+pnpm exec tsx plugin/scripts/validate.ts
 ```
 
 Parses and validates:
@@ -32,7 +32,7 @@ Parses and validates:
    - Required keys: `name` (kebab-case, matches filename minus `.md`), `description`, `model` (known Claude model ID), `allowed-tools` (list).
    - Optional keys: `argument-hint`, `context` (must be `"fork"` if present), `prerequisites` (list of skill names), `requirements`.
    - Unknown keys are flagged as fails — guards against typos like `allowed_tools`, `promptexpected`.
-   - Body must contain `## Your Task`, at least one `## Step <N>:` heading, `## Error handling`, and `## Examples`.
+   - Body must contain `## Your task`, at least one `## Step <N>:` or `## Rule <N>:` heading, and `## Common mistakes`.
 5. **Prerequisites graph** — every name in `prerequisites:` must resolve to an existing skill; no cycles (DFS with GRAY-coloring).
 
 Output is a per-file table with `pass / warn / fail` statuses. Exit 0 if all pass, exit 1 on any fail.
@@ -42,17 +42,19 @@ Output is a per-file table with `pass / warn / fail` statuses. Exit 0 if all pas
 ## `smoke-test.ts`
 
 ```bash
-npx tsx scripts/smoke-test.ts
+pnpm exec tsx plugin/scripts/smoke-test.ts
 # with live tools/list check:
-PATCHLINE_MCP_TOKEN=eyJ... npx tsx scripts/smoke-test.ts
+PATCHLINE_MCP_TOKEN=eyJ... pnpm exec tsx plugin/scripts/smoke-test.ts
 ```
 
-Runs four live checks:
+Runs six checks (the first three touch the network; the rest are local):
 
 1. **MCP endpoint reachable** — HTTP GET `https://www.patchline.ai/api/mcp/v1`. Expects 200/401/400/405 (server is alive). Connection refused or DNS failure is a fail.
 2. **RFC 9728 protected-resource metadata** — tries `/.well-known/oauth-protected-resource` and the scoped variant under the MCP path. Response must be JSON with a non-empty `resource` field and a non-empty `authorization_servers[]` array.
 3. **`allowed-tools` references resolve** — scans every `skills/**/SKILL.md` for `mcp__aria__<toolname>` entries, then calls `tools/list` against the live MCP (requires `PATCHLINE_MCP_TOKEN`). Missing tools are listed by (tool, referencing skill). If no token is set, this check `WARN`s and is skipped — not a fail.
-4. **`/aria:start` simulation** — creates a scratch `.patchline/` under `os.tmpdir()/aria-smoke-<ts>/`, writes fake `PROJECT.md` and `STATE.md`, asserts they exist and contain the expected sections, then cleans up on exit (including on SIGINT/SIGTERM). Mirrors the plugin's "fail closed, don't fabricate" contract reduced to its filesystem shape.
+4. **Moment skills present + frontmatter valid** — confirms each of the five moment skills (`drop`, `pitch`, `link`, `fans`, `operator`) has a `SKILL.md` whose frontmatter parses and whose `name` matches its directory.
+5. **Public docs document the moment model** — asserts the README mentions `get started` and at least one moment skill name.
+6. **Vendor-neutral public copy** — scans public docs + skill instructions and fails on any leaked third-party vendor name.
 
 Env vars:
 
@@ -94,7 +96,7 @@ Output is colorized for terminals (`cyan` headers, `green` pass, `yellow` warn, 
 - Scripts use `path.join` and `path.resolve` — no string path concatenation. Runs identically on Windows (Git Bash, PowerShell) and macOS/Linux.
 - `fs.rmSync(..., { recursive: true, force: true })` handles Windows read-only quirks.
 - `fetchWithTimeout` uses the Node 18+ global `fetch` — no external HTTP client dependency.
-- YAML parsing uses `js-yaml@^4`. If your workspace doesn't already have it, `npm install --no-save js-yaml@^4` before running.
+- YAML parsing uses `js-yaml@^4`, which is already available in the repo workspace.
 
 ---
 
@@ -102,11 +104,11 @@ Output is colorized for terminals (`cyan` headers, `green` pass, `yellow` warn, 
 
 ```bash
 # before committing any change:
-npx tsx scripts/validate.ts
+pnpm exec tsx plugin/scripts/validate.ts
 
 # before pushing / before releasing a new version:
 PATCHLINE_MCP_TOKEN=$(cat ~/.patchline-mcp-token) \
-  npx tsx scripts/smoke-test.ts
+  pnpm exec tsx plugin/scripts/smoke-test.ts
 ```
 
 A sensible pre-commit hook would run `validate.ts` automatically on any staged file.

@@ -7,7 +7,7 @@ labels: ["bug", "triage"]
 
 ## What went wrong
 
-<!-- Which skill or command failed? e.g. /aria:moodboard, /aria:next -->
+<!-- Which skill or command failed? e.g. /aria:drop, /aria:pitch -->
 
 ## What you expected
 
@@ -38,4 +38,4 @@ labels: ["bug", "triage"]
 
 ## Additional context
 
-<!-- Screenshots, logs, workspace STATE.md content (redact as needed), anything else helpful. -->
+<!-- Screenshots, logs, any relevant tool error output (redact as needed), anything else helpful. -->

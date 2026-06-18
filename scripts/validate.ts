@@ -8,7 +8,7 @@
  * prerequisites dependency graph.
  *
  * Usage:
- *   npx tsx scripts/validate.ts
+ *   pnpm exec tsx plugin/scripts/validate.ts
  *
  * Exit codes:
  *   0 — all checks passed (warnings allowed)
@@ -124,13 +124,13 @@ const ALL_ALLOWED_KEYS = new Set<string>([
   ...OPTIONAL_FRONTMATTER_KEYS,
 ])
 
-// Required body sections
+// Required body sections — the shared shape of every moment skill.
 const REQUIRED_SECTIONS: Array<{ name: string; pattern: RegExp }> = [
-  { name: '## Your Task', pattern: /^##\s+Your\s+Task\s*$/im },
-  // "## Step" covers "## Step 1: …", "## Step 2: …", etc. Need at least one.
-  { name: '## Step <N>: …', pattern: /^##\s+Step\s+\d+\s*[:.]/im },
-  { name: '## Error handling', pattern: /^##\s+Error\s+handling\s*$/im },
-  { name: '## Examples', pattern: /^##\s+Examples\s*$/im },
+  { name: '## Your task', pattern: /^##\s+Your\s+task\s*$/im },
+  // Each moment is procedural: numbered "## Step N: …" for action skills, or
+  // numbered "## Rule N: …" for the operator manual. Need at least one.
+  { name: '## Step <N>: … or ## Rule <N>: …', pattern: /^##\s+(Step|Rule)\s+\d+\s*[:.]/im },
+  { name: '## Common mistakes', pattern: /^##\s+Common\s+mistakes/im },
 ]
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -358,7 +358,7 @@ function checkSkills(): { skills: ParsedSkill[]; anyFail: boolean } {
 
   // Claude Code plugin format (per official docs): each skill lives in its own
   // subdirectory, with a SKILL.md file inside. skills/<name>/SKILL.md.
-  // Example: skills/start/SKILL.md → invokable as /aria:start
+  // Example: skills/drop/SKILL.md → invokable as /aria:drop
   const entries = fs
     .readdirSync(SKILLS_DIR)
     .filter((name) => {

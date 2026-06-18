@@ -1,4 +1,5 @@
-# User workspace created by /aria:start — never commit a user's project state
+# Legacy: the retired 0.1.x lifecycle created a .patchline/ workspace. Moment
+# skills don't create one — kept as a harmless guard for older checkouts.
 .patchline/
 
 # Local dev state

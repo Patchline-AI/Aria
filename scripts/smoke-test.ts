@@ -8,11 +8,14 @@
  *   2. Patchline's RFC 9728 protected-resource metadata is well-formed
  *   3. Every "mcp__aria__*" tool referenced in skill allowed-tools
  *      lists resolves against the live tools/list (skipped if no token)
- *   4. First 3 steps of /aria:start simulated against a scratch tmpdir
- *   5. Public README documents natural-language start + slash-alias fallback
+ *   4. Each of the 5 moment skills has a SKILL.md with valid frontmatter
+ *      (name matches its directory)
+ *   5. Public README documents the moment model (natural-language `get started`
+ *      + at least one moment skill)
+ *   6. Public docs + skill instructions stay vendor-neutral
  *
  * Usage:
- *   npx tsx scripts/smoke-test.ts
+ *   pnpm exec tsx plugin/scripts/smoke-test.ts
  *
  * Env:
  *   PATCHLINE_MCP_URL    — override the MCP URL (default: https://www.patchline.ai/api/mcp/v1)
@@ -26,7 +29,6 @@
  */
 
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 import yaml from 'js-yaml'
 
@@ -49,6 +51,9 @@ const MCP_REACHABILITY_TIMEOUT_MS = 30_000
 // Tool-namespace prefix used by the Claude MCP client.
 const TOOL_PREFIX = 'mcp__aria__'
 const MCP_SERVER_NAME = 'aria'
+
+// The five standalone "moment" skills shipped in 0.2.0. No phases, no shared state.
+const MOMENT_SKILLS = ['drop', 'pitch', 'link', 'fans', 'operator'] as const
 
 // ──────────────────────────────────────────────────────────────────────────
 // Colors (matches tests/runners/deploy-and-verify.ts palette)
@@ -419,112 +424,50 @@ async function checkAllowedToolsResolve() {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Check 4: simulate /aria:start first 3 steps in a scratch tmpdir
+// Check 4: each moment skill has a SKILL.md with valid frontmatter
 // ──────────────────────────────────────────────────────────────────────────
 
-function checkStartSimulation() {
-  const name = '/aria:start first-3-steps simulation'
-  const ts = Date.now()
-  const tmpRoot = path.join(os.tmpdir(), `aria-smoke-${ts}`)
-  const patchlineDir = path.join(tmpRoot, '.patchline')
-  const artifactsDir = path.join(patchlineDir, 'artifacts')
-  const projectMd = path.join(patchlineDir, 'PROJECT.md')
-  const stateMd = path.join(patchlineDir, 'STATE.md')
-
-  // Register cleanup regardless of what happens.
-  cleanupHooks.push(() => {
-    try {
-      if (fs.existsSync(tmpRoot)) fs.rmSync(tmpRoot, { recursive: true, force: true })
-    } catch {
-      // best-effort — tmpdir cleanup is not load-bearing
-    }
-  })
-
+function checkMomentSkills() {
+  const name = 'moment skills present + frontmatter valid'
   try {
-    // Step 1-ish: create workspace dir (simulating "no existing .patchline/").
-    fs.mkdirSync(artifactsDir, { recursive: true })
-
-    // Step 2-ish: write a fake PROJECT.md as if artist identity was grounded.
-    const projectBody = [
-      '# Project: Aria Smoke Test',
-      '',
-      '> Started: 2026-04-18 · Distribution: self_releasing',
-      '',
-      '## Artist identity',
-      '',
-      '- Name: Smoke Tester',
-      '- Patchline artist ID: not in roster',
-      '- Streaming intelligence ID: smoke-test-id',
-      '- Primary genres: test, fixture',
-      '- Career stage: developing',
-      '- Country: US',
-      '- Current monthly listeners (Spotify): 0',
-      '',
-      '## Project scope',
-      '',
-      '- Type: TBD',
-      '- Working title: Aria Smoke Test',
-      '- Distribution: self_releasing',
-      '- Composition status: complete',
-      '- Focus track asset ID: pending',
-      '- Audio status: required',
-      '- Track analysis status: missing',
-      '',
-    ].join('\n')
-    fs.writeFileSync(projectMd, projectBody, 'utf8')
-
-    // Step 3-ish: write STATE.md.
-    const stateBody = [
-      '# State',
-      '',
-      '## Current phase',
-      '',
-      '`audio-intake` — pending.',
-      '',
-      '## Completed phases',
-      '',
-      '(none yet)',
-      '',
-      '## Distribution mode',
-      '',
-      '`self_releasing`',
-      '',
-      '## Composition status',
-      '',
-      '`complete`',
-      '',
-      '## Focus track asset ID',
-      '',
-      '`pending`',
-      '',
-      '## Audio status',
-      '',
-      '`required`',
-      '',
-      '## Track analysis status',
-      '',
-      '`missing`',
-      '',
-    ].join('\n')
-    fs.writeFileSync(stateMd, stateBody, 'utf8')
-
-    // Assertions.
     const failures: string[] = []
-    if (!fs.existsSync(projectMd)) failures.push('PROJECT.md missing after write')
-    if (!fs.existsSync(stateMd)) failures.push('STATE.md missing after write')
-    if (!fs.existsSync(artifactsDir)) failures.push('artifacts/ missing after mkdir')
 
-    const projectRead = fs.readFileSync(projectMd, 'utf8')
-    if (!/^#\s+Project:/m.test(projectRead)) failures.push('PROJECT.md missing H1 heading')
-    if (!/Artist identity/.test(projectRead)) failures.push('PROJECT.md missing artist identity section')
+    for (const skill of MOMENT_SKILLS) {
+      const skillMd = path.join(SKILLS_DIR, skill, 'SKILL.md')
+      if (!fs.existsSync(skillMd)) {
+        failures.push(`${skill}: SKILL.md missing`)
+        continue
+      }
 
-    const stateRead = fs.readFileSync(stateMd, 'utf8')
-    if (!/Current phase/.test(stateRead)) failures.push('STATE.md missing Current phase section')
-    if (!/audio-intake/.test(stateRead)) failures.push('STATE.md missing audio-intake pointer for complete composition')
-    if (!/Track analysis status/.test(stateRead)) failures.push('STATE.md missing Track analysis status section')
+      const raw = fs.readFileSync(skillMd, 'utf8').replace(/\r\n/g, '\n')
+      if (!raw.startsWith('---\n')) {
+        failures.push(`${skill}: no YAML frontmatter`)
+        continue
+      }
+      const close = raw.slice(4).indexOf('\n---')
+      if (close === -1) {
+        failures.push(`${skill}: unterminated frontmatter`)
+        continue
+      }
+
+      let fm: any
+      try {
+        fm = yaml.load(raw.slice(4).slice(0, close))
+      } catch (e: any) {
+        failures.push(`${skill}: frontmatter YAML error (${e.message})`)
+        continue
+      }
+      if (!fm || typeof fm !== 'object') {
+        failures.push(`${skill}: frontmatter did not parse to an object`)
+        continue
+      }
+      if (fm.name !== skill) {
+        failures.push(`${skill}: frontmatter name "${fm.name}" does not match directory`)
+      }
+    }
 
     if (failures.length === 0) {
-      record(name, 'pass', `scratch at ${tmpRoot}`)
+      record(name, 'pass', `${MOMENT_SKILLS.length}/${MOMENT_SKILLS.length} moment skills valid`)
     } else {
       record(name, 'fail', failures.join('; '))
     }
@@ -534,88 +477,22 @@ function checkStartSimulation() {
 }
 
 function checkPublicDocsStartGuidance() {
-  const name = 'public docs avoid slash-command-only start'
+  const name = 'public docs document the moment model'
   try {
     const readme = fs.readFileSync(README, 'utf8')
-    const hasNaturalLanguageStart = /Start Aria for this artist: <Spotify artist profile URL>/.test(readme)
-    const hasSlashFallback = /unknown command/.test(readme) && /natural language/.test(readme)
-    if (!hasNaturalLanguageStart) {
-      record(name, 'fail', 'README missing natural-language start instruction')
+    const hasGetStarted = /get started/i.test(readme)
+    const mentionedMoments = MOMENT_SKILLS.filter((skill) =>
+      new RegExp(`\\b${skill}\\b`).test(readme)
+    )
+    if (!hasGetStarted) {
+      record(name, 'fail', 'README does not mention "get started"')
       return
     }
-    if (!hasSlashFallback) {
-      record(name, 'fail', 'README does not warn that /aria:start may not be a slash alias')
+    if (mentionedMoments.length === 0) {
+      record(name, 'fail', `README names none of the moment skills (${MOMENT_SKILLS.join(', ')})`)
       return
     }
-    record(name, 'pass', 'README documents natural-language start + slash-alias fallback')
-  } catch (e: any) {
-    record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
-  }
-}
-
-function readSkill(name: string): string {
-  return fs.readFileSync(path.join(SKILLS_DIR, name, 'SKILL.md'), 'utf8')
-}
-
-function checkCommandCenterPrompts() {
-  const name = 'command-center prompt regressions'
-  try {
-    const start = readSkill('start')
-    const audio = readSkill('audio-intake')
-    const moodboard = readSkill('moodboard')
-    const releasePlan = readSkill('release-plan')
-    const rollout = readSkill('rollout')
-    const failures: string[] = []
-
-    if (!/mcp__aria__create_project/.test(start)) failures.push('start does not call create_project')
-    if (!/Project Anchor/.test(start)) failures.push('start does not persist Project Anchor')
-    if (!/campaignIntake/.test(start)) failures.push('start does not seed campaignIntake ideaMetadata')
-
-    if (!/Target release date/.test(audio) || !/Marketing goal/.test(audio)) {
-      failures.push('audio-intake does not capture compact campaign intake')
-    }
-    if (!/Wait 60 seconds/.test(audio) || !/every 20 seconds/.test(audio) || !/7 minutes/.test(audio)) {
-      failures.push('audio-intake polling window is not the MVP 60s + 20s/~7min loop')
-    }
-    if (!/Confirm Track Title From Filename/.test(audio)) {
-      failures.push('audio-intake does not confirm title from filename')
-    }
-
-    if (/Which Cynite-analyzed tracks should anchor/i.test(moodboard)) {
-      failures.push('moodboard still asks competing anchor question')
-    }
-    if (!/focus track is always the anchor/i.test(moodboard)) {
-      failures.push('moodboard does not force focus track as anchor')
-    }
-    if (!/color, contrast, or sharpen/i.test(moodboard)) {
-      failures.push('moodboard does not frame catalog refs as supplementary color/contrast')
-    }
-
-    if (!/mcp__aria__get_artist_context/.test(releasePlan)) {
-      failures.push('release-plan does not call get_artist_context')
-    }
-    if (!/mcp__aria__create_campaign/.test(releasePlan)) {
-      failures.push('release-plan does not create app-backed campaign tasks')
-    }
-    if (!/Distributor: <known value or TBD>/.test(releasePlan)) {
-      failures.push('release-plan does not default distributor to TBD')
-    }
-
-    if (!/mcp__aria__get_artist_context/.test(rollout)) {
-      failures.push('rollout does not call get_artist_context')
-    }
-    if (/Which socials are you actually active on/i.test(rollout) || /Which socials are you active on/i.test(rollout)) {
-      failures.push('rollout still asks social-activity question')
-    }
-    if (!/baseline multi-channel rollout/i.test(rollout)) {
-      failures.push('rollout lacks automatic baseline multi-channel fallback')
-    }
-
-    if (failures.length === 0) {
-      record(name, 'pass')
-    } else {
-      record(name, 'fail', failures.join('; '))
-    }
+    record(name, 'pass', `README documents "get started" + moment skills (${mentionedMoments.join(', ')})`)
   } catch (e: any) {
     record(name, 'fail', `${e.name || 'Error'}: ${e.message}`)
   }
@@ -637,9 +514,8 @@ function checkVendorNeutralPublicCopy() {
       path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json'),
       path.join(PLUGIN_ROOT, 'package.json'),
       path.join(PLUGIN_ROOT, 'CLAUDE.md'),
-      path.join(PLUGIN_ROOT, 'reference', 'state-schema.md'),
       ...skillFiles,
-    ]
+    ].filter((file) => fs.existsSync(file))
     const hits: string[] = []
     for (const file of scanned) {
       const raw = fs.readFileSync(file, 'utf8')
@@ -730,16 +606,13 @@ async function main() {
   section('3. allowed-tools references resolve against server')
   await checkAllowedToolsResolve()
 
-  section('4. /aria:start simulation')
-  checkStartSimulation()
+  section('4. moment skills present + frontmatter valid')
+  checkMomentSkills()
 
-  section('5. public docs start guidance')
+  section('5. public docs document the moment model')
   checkPublicDocsStartGuidance()
 
-  section('6. command-center prompt regressions')
-  checkCommandCenterPrompts()
-
-  section('7. vendor-neutral public copy')
+  section('6. vendor-neutral public copy')
   checkVendorNeutralPublicCopy()
 
   printReport()

@@ -2,16 +2,16 @@
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-D97757)](https://docs.claude.com/en/docs/claude-code/plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0068FF)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0--alpha-00E6E2)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.3--alpha-00E6E2)](./CHANGELOG.md)
 [![MCP](https://img.shields.io/badge/MCP-aria-002772)](https://www.patchline.ai/mcp)
 
-**Ship a music release end-to-end without leaving Claude.**
+**Ship a music release end-to-end without leaving Claude Desktop, Cowork, or Claude Code.**
 
-Aria is a Claude Code plugin that walks artists and managers through a release lifecycle from raw idea or finished track to pitched, released, and live on a smart link. Every artifact it produces is grounded in your real catalog and real streaming data via the Patchline MCP. No hallucinated playlists. No invented metrics.
+Aria is a Claude plugin for Claude Code and Claude Desktop/Cowork that walks artists and managers through a release lifecycle from raw idea or finished track to pitched, released, and live on a smart link. Every artifact it produces is grounded in your real catalog and real streaming data via the Patchline MCP. No hallucinated playlists. No invented metrics.
 
 ```bash
 # In Claude Code
-/plugin marketplace add Patchline-AI/Aria
+/plugin marketplace add Patchline-AI/aria
 /plugin install aria@patchline-ai
 /reload-plugins
 ```
@@ -21,13 +21,23 @@ Then run `/mcp`, choose `plugin:aria:aria`, and authenticate with your
 Patchline account. Once the server shows connected, start in plain language:
 
 ```text
-Start Aria for this artist: <Spotify artist profile URL>
+get started
 ```
 
-Some Claude Code builds expose plugin skills as slash aliases such as
-`/aria:start`; others load them from natural language. If a bare `/aria:start`
-returns "unknown command", use the sentence above and Claude will load the
-`aria:start` skill itself.
+`get_started` reports what's in your workspace (artists, tracks, releases) and
+the single best next action. From there, just say what you want — "drop my new
+single", "pitch this track", "make a smart link", "how are my fans doing" — or
+invoke a skill directly (`/aria:drop`, `/aria:pitch`, `/aria:link`,
+`/aria:fans`). Nothing chains; each skill is a standalone, single-job moment.
+
+On Claude Desktop/Cowork, install the same plugin package through the app's
+plugin flow and use the same natural-language prompts.
+
+If you are iterating on the plugin itself and want Claude Desktop/Cowork to
+load your local working copy instead of the published `Patchline-AI/aria`
+release, see [TROUBLESHOOTING - Testing unreleased changes from a local clone](./TROUBLESHOOTING.md#testing-unreleased-changes-from-a-local-clone).
+If `/reload-plugins` reports "not available on this environment", see
+[TROUBLESHOOTING - `/reload-plugins` says "not available on this environment"](./TROUBLESHOOTING.md#reload-plugins-says-not-available-on-this-environment).
 
 Use the artist profile URL first, not a track, album, or playlist URL. If you
 do not have the Spotify profile URL yet, type the artist name and Aria will
@@ -37,28 +47,26 @@ search your Patchline roster/index.
 
 ## What you get
 
-- **Nine lifecycle skills** — `audio-intake`, `creative-brief`, `vision-story`, `moodboard`, `songwriting-brief`, `release-plan`, `rollout`, `pitch-kit`, `smart-link`
-- **Two lifecycle skills** — `aria:start` bootstraps a project, `aria:next` advances to the next phase
-- **The `aria` MCP server** — tools spanning catalog management, secure upload handoff, playlist targeting, artist intelligence, pitch generation, project creation, and smart-link creation
-- **A `.patchline/` workspace** — plaintext markdown artifacts you can hand-edit, version-control, or forward to a collaborator
+- **Five lean "moment" skills** — each does one valuable thing end-to-end, grounded in your real Patchline data:
+  - `drop` — take a finished track from a file to live on your storefront (upload → analyze → cover → store link)
+  - `pitch` — ground a catalog track and draft sendable playlist-submission copy + a pitch link
+  - `link` — create and share a smart link for a track, with analytics
+  - `fans` — direct-to-fan: audience overview, geography, segments, store/surface analytics
+  - `operator` — the operating manual for driving the MCP correctly (safety gates, grounding, token-frugality)
+- **The `aria` MCP server** — tools spanning catalog management, secure upload handoff, cover art, playlist targeting, artist intelligence, pitch generation, project/campaign creation, smart links, and audience analytics. Call `get_started` first if you're unsure where to begin.
 
 ## How it's different from "ChatGPT for music"
 
-This is not a tool explorer. Each phase is a **progressive interview**: Claude asks only the missing clarifying questions, calls MCP tools to ground the answers in your real data, and produces a named artifact (`BRIEF.md`, `MOODBOARD.md`, `PITCH_KIT.md` …). Every output is verifiable against your Patchline catalog, artist intelligence, and track analysis.
-
-If you've seen a GSD-style phased plugin — same discipline. Different verb set: music.
+This is not a tool explorer, and it's not a 10-step waterfall. Each skill is a single grounded action: it calls the `aria` MCP to ground every fact in your real catalog, artist intelligence, and track analysis — no invented playlists, no hallucinated metrics — and gets one job done fast. Both solo artists and labels use them.
 
 ## Quickstart
 
-1. `cd` into a directory where you want your project workspace (the current dir is fine; Aria never touches anything outside `.patchline/`)
-2. Run `/reload-plugins` and approve the Aria MCP server if prompted
-3. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected
-4. Say `Start Aria for this artist: <Spotify artist profile URL>` — Aria resolves the artist through Patchline intelligence, asks for your project name, creates a Patchline Project Anchor, then creates `.patchline/` with a `PROJECT.md` and `STATE.md`
-5. If you already have the finished track, Aria routes to `audio-intake` first so you can upload/confirm the focus track, capture campaign basics, and wait for track analysis before sonic strategy questions.
-6. Say `Continue Aria` or `run aria:next` — advances to whatever phase you haven't completed. After audio is settled, the next strategy run produces `BRIEF.md`.
-7. Keep saying `Continue Aria` until your smart link is live.
+1. Run `/reload-plugins` and approve the Aria MCP server if prompted.
+2. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected.
+3. Say `get started` (or call the `get_started` tool) — Aria reports what you have (artists, tracks, releases) and the single best next step.
+4. From there, just say what you want: "drop my new single", "pitch this track to playlists", "make a smart link", "how are my fans doing". Or invoke a skill directly: `/aria:drop`, `/aria:pitch`, `/aria:link`, `/aria:fans`.
 
-Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by hand if Aria misses something, then `/aria:next` regenerates the downstream outputs.
+Nothing chains — each skill is standalone and can run any time. Skills produce a written artifact only if you ask; the default is a concise inline report.
 
 ## Who this is for
 
@@ -69,54 +77,35 @@ Each artifact lives as plaintext markdown in `.patchline/artifacts/`. Edit by ha
 ## Requirements
 
 - A [Patchline AI account](https://patchline.ai) (free tier available; some features are tier-gated post-launch)
-- Claude Code 1.x+ **or** Claude Desktop with MCP + plugin support
-- An internet connection — the MCP server is hosted
+- Claude Code 1.x+ or Claude Desktop/Cowork with MCP and plugin support
+- An internet connection - the MCP server is hosted
 
-## First run — authentication
+## First run - authentication
 
-The first MCP call triggers a one-time Cognito OAuth flow in your browser. Token is persisted by Claude's MCP client. If the flow stalls:
+The first MCP call triggers a one-time Cognito OAuth flow in your browser. The token is persisted by Claude's MCP client. If the flow stalls:
 
-1. Close the browser tab
-2. Run `/reload-plugins`
-3. Run `/mcp` in Claude Code and reconnect `plugin:aria:aria`
-4. Still stuck? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+1. Close the browser tab.
+2. Run `/reload-plugins`.
+3. Run `/mcp` in Claude Code and reconnect `plugin:aria:aria`.
+4. Still stuck? See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
 
-You will never be asked for raw credentials, tokens, or AWS keys. The plugin doesn't need them.
-
-## Privacy and data handling
-
-Aria connects Claude to Patchline's hosted MCP service at
-`https://www.patchline.ai/api/mcp/v1`. When you authenticate, Claude receives a
-Patchline OAuth access token for the scopes authorized in the connection flow;
-Patchline authenticates and user-scopes each MCP tool call server-side.
-
-Data you send through Aria, and tool outputs returned to Claude, may transit
-Claude or another MCP client under that client's own terms and privacy policy.
-Patchline's collection, processing, retention, subprocessors, and AI-improvement
-rules are described in the [Patchline Privacy Policy](https://www.patchline.ai/privacy).
-
-Uploaded audio, track-analysis outputs, spectrograms, fingerprints, embeddings,
-and similar music-derived technical features may be used to provide and improve
-Patchline features such as catalog search, sonic matching, recommendations, and
-metadata quality. Patchline does not use your audio recordings, masters,
-compositions, musical works, or derivative audio or music features to train
-generative music or audio models without separate, explicit opt-in consent.
+You will never be asked for raw credentials, tokens, or AWS keys. The plugin does not need them.
 
 ## Relationship to the Patchline web app
 
-The plugin is the **guided workspace** for planning release artifacts inside Claude. The web app at [patchline.ai](https://patchline.ai) is where your catalog, storefront, billing, and social integrations live.
+The plugin is the guided workspace for planning release artifacts inside Claude. The web app at [patchline.ai](https://patchline.ai) is where your catalog, storefront, billing, and social integrations live.
 
 Patchline also ships a Telegram companion bot for always-on mobile execution: paste links, trigger quick actions, and keep release momentum moving when you are away from your desk. Think of it as the 24/7 operator in your pocket; Aria is the structured planning room.
 
 ## License + attribution
 
 - **Plugin code: [MIT License](./LICENSE).** Open source so artists, managers, and builders can inspect how the workflow is structured and adapt it for their own teams.
-- **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v1` is Patchline-owned infrastructure, authenticated via Cognito. Requires a Patchline account. This is the standard authenticated-service pattern (AWS / OpenAI / Anthropic SDKs).
+- **MCP service: hosted + proprietary.** The `aria` MCP endpoint at `patchline.ai/api/mcp/v1` is Patchline-owned infrastructure, authenticated via Cognito. It requires a Patchline account.
 - **Inspired by the wider Claude music-tooling community.** We respect earlier experiments such as [`bitwize-music-studio/claude-ai-music-skills`](https://github.com/bitwize-music-studio/claude-ai-music-skills); Aria takes a different route by grounding release operations in Patchline's hosted catalog, artist intelligence, track analysis, and smart-link infrastructure.
 
 ## Extending Aria
 
-Aria is designed to be composable without exposing Patchline's full internal roadmap. If you want to contribute a lifecycle skill, start with [CONTRIBUTING.md](./CONTRIBUTING.md) and [`reference/state-schema.md`](./reference/state-schema.md) so your phase respects the `STATE.md` contract.
+Aria is designed to be composable without exposing Patchline's full internal roadmap. If you want to contribute a skill, start with [CONTRIBUTING.md](./CONTRIBUTING.md). Each skill is a standalone moment (`drop`, `pitch`, `link`, `fans`, `operator`), MCP-grounded, with no shared phase state to maintain.
 
 ## Links
 
@@ -124,8 +113,7 @@ Aria is designed to be composable without exposing Patchline's full internal roa
 |---|---|
 | Web app | [patchline.ai](https://patchline.ai) |
 | MCP landing | [patchline.ai/mcp](https://www.patchline.ai/mcp) |
-| Privacy policy | [patchline.ai/privacy](https://www.patchline.ai/privacy) |
-| Issues + feedback | [github.com/Patchline-AI/Aria/issues](https://github.com/Patchline-AI/Aria/issues) |
+| Issues + feedback | [github.com/Patchline-AI/aria/issues](https://github.com/Patchline-AI/aria/issues) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md) |
 | Contributing | [CONTRIBUTING.md](./CONTRIBUTING.md) |
 | Code of conduct | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) |
