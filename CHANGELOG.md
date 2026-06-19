@@ -2,6 +2,11 @@
 
 All notable changes to Aria by Patchline are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+- Removed the pitch skill while `create_pitch_link` is gated; pitch copy remains via `generate_pitch`, sharing via `create_asset_share`.
+
 ## [0.2.0] - 2026-06-17
 
 ### Changed

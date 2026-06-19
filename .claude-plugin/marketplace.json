@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "aria",
-      "description": "Music-release moments for Claude — drop a track, pitch it, make a smart link, know your fans. Powered by the aria MCP.",
-      "version": "0.2.0",
+      "description": "Music-release moments for Claude — drop a track, make a smart link, know your fans. Powered by the aria MCP.",
+      "version": "0.2.1",
       "source": "./"
     }
   ]

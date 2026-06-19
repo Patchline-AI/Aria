@@ -2,7 +2,7 @@
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-D97757)](https://docs.claude.com/en/docs/claude-code/plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0068FF)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.3--alpha-00E6E2)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-00E6E2)](./CHANGELOG.md)
 [![MCP](https://img.shields.io/badge/MCP-aria-002772)](https://www.patchline.ai/mcp)
 
 **Ship a music release end-to-end without leaving Claude Desktop, Cowork, or Claude Code.**
@@ -26,9 +26,9 @@ get started
 
 `get_started` reports what's in your workspace (artists, tracks, releases) and
 the single best next action. From there, just say what you want — "drop my new
-single", "pitch this track", "make a smart link", "how are my fans doing" — or
-invoke a skill directly (`/aria:drop`, `/aria:pitch`, `/aria:link`,
-`/aria:fans`). Nothing chains; each skill is a standalone, single-job moment.
+single", "make a smart link", "how are my fans doing" — or
+invoke a skill directly (`/aria:drop`, `/aria:link`,
+`/aria:fans`, `/aria:operator`). Nothing chains; each skill is a standalone, single-job moment.
 
 On Claude Desktop/Cowork, install the same plugin package through the app's
 plugin flow and use the same natural-language prompts.
@@ -47,12 +47,12 @@ search your Patchline roster/index.
 
 ## What you get
 
-- **Five lean "moment" skills** — each does one valuable thing end-to-end, grounded in your real Patchline data:
+- **Four lean "moment" skills** — each does one valuable thing end-to-end, grounded in your real Patchline data:
   - `drop` — take a finished track from a file to live on your storefront (upload → analyze → cover → store link)
-  - `pitch` — ground a catalog track and draft sendable playlist-submission copy + a pitch link
   - `link` — create and share a smart link for a track, with analytics
   - `fans` — direct-to-fan: audience overview, geography, segments, store/surface analytics
   - `operator` — the operating manual for driving the MCP correctly (safety gates, grounding, token-frugality)
+- **Pitch copy without a pitch skill:** use `generate_pitch` for draft submission copy and `create_asset_share` for a shareable link (`create_pitch_link` is gated/hidden in the 49-tool build).
 - **The `aria` MCP server** — tools spanning catalog management, secure upload handoff, cover art, playlist targeting, artist intelligence, pitch generation, project/campaign creation, smart links, and audience analytics. Call `get_started` first if you're unsure where to begin.
 
 ## How it's different from "ChatGPT for music"
@@ -64,7 +64,7 @@ This is not a tool explorer, and it's not a 10-step waterfall. Each skill is a s
 1. Run `/reload-plugins` and approve the Aria MCP server if prompted.
 2. Run `/mcp`, authenticate `plugin:aria:aria`, and wait for it to show connected.
 3. Say `get started` (or call the `get_started` tool) — Aria reports what you have (artists, tracks, releases) and the single best next step.
-4. From there, just say what you want: "drop my new single", "pitch this track to playlists", "make a smart link", "how are my fans doing". Or invoke a skill directly: `/aria:drop`, `/aria:pitch`, `/aria:link`, `/aria:fans`.
+4. From there, just say what you want: "drop my new single", "make a smart link", "how are my fans doing". Or invoke a skill directly: `/aria:drop`, `/aria:link`, `/aria:fans`, `/aria:operator`.
 
 Nothing chains — each skill is standalone and can run any time. Skills produce a written artifact only if you ask; the default is a concise inline report.
 

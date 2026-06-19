@@ -1,6 +1,6 @@
 ---
 name: drop
-description: "Drop a song. The one-shot release flow: upload the master, let Patchline analyze it, give it a cover, and put it on the storefront. Use when the user says \"drop my new single\", \"release this track\", \"put my song out\", \"I just finished a track, get it live\", or pastes a local audio file and wants it shipped. Reuses start's Spotify-URL identity resolution if the artist isn't connected yet. MCP-grounded: get_asset_upload_link -> confirm_asset_upload -> manage_catalog_asset set_cover_art -> create_store_link."
+description: "Drop a song. The one-shot release flow: upload the master, let Patchline analyze it, give it a cover, list it on the storefront, and create the public store link. Use when the user says \"drop my new single\", \"release this track\", \"put my song out\", \"I just finished a track, get it live\", or pastes a local audio file and wants it shipped. Reuses start's Spotify-URL identity resolution if the artist isn't connected yet. MCP-grounded: get_asset_upload_link -> confirm_asset_upload -> manage_catalog_asset set_cover_art -> manage_store_listing validate/list -> create_store_link."
 argument-hint: "[optional local audio file path, or Spotify artist URL to connect first]"
 model: claude-sonnet-4-6
 allowed-tools:
@@ -18,7 +18,7 @@ Take a finished track from a file on disk to live on the artist's storefront, in
 1. **Connect the artist** if they aren't already (Spotify URL -> `analyze_url` -> `add_artist` -> `get_artist_intelligence`).
 2. **Upload the master** — `get_asset_upload_link` mints a presigned URL, the user's bytes go straight to storage (never through MCP), then `confirm_asset_upload` finalizes and kicks off track analysis.
 3. **Give it a cover** — upload an image the same way, then `manage_catalog_asset` with `action: "set_cover_art"`, pointing the track at the image as `coverAssetId`.
-4. **Put it on the storefront** — `create_store_link` makes the public store surface.
+4. **Put it on the storefront** — `manage_store_listing` validates/lists the track, then `create_store_link` makes the public store surface.
 
 Both solo artists and labels use this — a label connects a roster artist, a solo artist connects themselves. Keep copy role-agnostic.
 
@@ -126,7 +126,7 @@ If you only generate an artifact when the user asks: a short `DROP.md` with the 
 - **`set_cover_art` dry-run mismatch** → re-read which track/cover it planned; only apply with `dryRun:false` once it's right.
 - **`create_store_link` seller/payout error** → surface the dashboard step the user must complete first.
 
-Never claim a track is "live on the storefront" unless `create_store_link` returned a real `shareUrl`. A fabricated store URL is worse than none — the artist will paste it into their bio.
+Never claim a track is "live on the storefront" unless `manage_store_listing list` succeeded and `create_store_link` returned a real `shareUrl`. A fabricated store URL is worse than none — the artist will paste it into their bio.
 
 ## Common mistakes
 

@@ -25,7 +25,7 @@ Then move along the stage it reports:
 
 - **connect_artist** → `analyze_url` a Spotify URL, then `add_artist`.
 - **add_music** → `get_asset_upload_link` (upload a master) or `import_track_from_url` (already released elsewhere).
-- **first_release** → `set_cover_art`, then `create_store_link` / `create_smart_link`.
+- **first_release** → `set_cover_art`, then `manage_store_listing` (validate → list/price), then `create_store_link` / `create_smart_link`.
 - **grow** → `generate_pitch`, `create_smart_link`, `get_audience_overview`.
 
 The lean moment-skills map onto these stages: **drop** (add_music → first_release), **pitch** (grow), **link** (first_release/grow), **fans** (grow).
@@ -89,7 +89,7 @@ If a tool returns empty, an empty answer is the correct answer. Confident fabric
 When any tool returns `isError: true` (or a structured error with a `code` / `nextAction`), surface the **exact** error to the user and **one concrete next step** — usually the tool's own `nextAction`. Examples:
 
 - `TRACK_RESOLUTION_UNCONFIRMED` on import → "confirm the artist, then retry with `allowLowConfidenceArtist: true`."
-- `COVER_NOT_AN_IMAGE` → "that asset is audio — upload the actual image and use its id as `coverAssetId`."
+- `COVER_NOT_USABLE` → "that asset is audio or not ready — upload the actual image, confirm it, and use its id as `coverAssetId`."
 - Smart link "missing ISRC" → "distribute the track to get an ISRC, then retry."
 - Auth error → "run `/mcp`, reconnect `plugin:aria:aria`, try again."
 

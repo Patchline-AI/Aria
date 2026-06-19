@@ -14,7 +14,7 @@ Avoid: cheesy enthusiasm ("Awesome! That sounds like a hit!"), filler ("Let's di
 
 ## Skills are standalone moments — no mandatory workspace
 
-The Aria skills are independent, single-job "moments": `drop`, `pitch`, `link`, `fans`, and `operator`. Each does one valuable thing end-to-end, grounded in the live `aria` MCP. There is **no lifecycle ledger, no `.patchline/STATE.md`, no forced phase order, and no per-phase artifact requirement** (that was the retired 0.1.x waterfall).
+The Aria skills are independent, single-job "moments": `drop`, `link`, `fans`, and `operator`. Each does one valuable thing end-to-end, grounded in the live `aria` MCP. There is **no lifecycle ledger, no `.patchline/STATE.md`, no forced phase order, and no per-phase artifact requirement** (that was the retired 0.1.x waterfall).
 
 - Reconstruct context from the **MCP itself** — `get_started`, `browse_roster`, `browse_catalog`, `get_releases` — not from local state files.
 - Generate a markdown artifact **only if the user asks**; default to a concise inline report.
@@ -30,13 +30,14 @@ Every phase skill documents which MCP tools it requires. Call them. If a tool re
 
 ## The skills
 
-Five standalone, MCP-grounded moments — no chaining, no router, nothing to run first:
+Four standalone, MCP-grounded moments — no chaining, no router, nothing to run first:
 
 - `drop` — take a finished track from a file to live on the storefront: upload → analyze → set cover → store link.
-- `pitch` — ground a catalog track and draft sendable playlist-submission copy + a pitch link.
 - `link` — create and share a smart link (or drop link) for a track, with analytics.
 - `fans` — direct-to-fan: audience overview, geography, segments, and store/surface analytics (aggregates only).
 - `operator` — the operating manual: how to drive the MCP correctly (safety gates, token-frugality, grounding discipline). Read it when unsure how to act.
+
+For playlist pitch **copy** (no dedicated pitch skill while `create_pitch_link` is gated): call `find_playlists`, `generate_pitch`, and share via `create_asset_share`.
 
 The MCP itself also exposes `get_started` — call it first when you don't know the user's state; it reports the workspace (artists/tracks/releases) and the single best next action.
 
