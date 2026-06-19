@@ -1,7 +1,7 @@
 {
   "name": "patchline-ai",
   "metadata": {
-    "description": "Aria and Cadence plugins by Patchline AI. Aria connects Claude to the hosted Aria MCP for music-release intelligence and workflows."
+    "description": "The Aria plugin by Patchline AI. Aria connects Claude to the hosted Aria MCP for music-release intelligence and workflows."
   },
   "owner": {
     "name": "Patchline AI",
