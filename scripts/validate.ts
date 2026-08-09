@@ -17,6 +17,7 @@
  * Run this before every commit.
  */
 
+import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import yaml from 'js-yaml'
@@ -31,7 +32,12 @@ const PLUGIN_ROOT = path.resolve(SCRIPT_DIR, '..')
 const PLUGIN_JSON = path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json')
 const MARKETPLACE_JSON = path.join(PLUGIN_ROOT, '.claude-plugin', 'marketplace.json')
 const MCP_JSON = path.join(PLUGIN_ROOT, '.mcp.json')
+const CURSOR_PLUGIN_JSON = path.join(PLUGIN_ROOT, '.cursor-plugin', 'plugin.json')
+const CURSOR_MCP_JSON = path.join(PLUGIN_ROOT, 'mcp.json')
+const CURSOR_LOGO = path.join(PLUGIN_ROOT, 'assets', 'aria-mcp-icon.png')
 const SKILLS_DIR = path.join(PLUGIN_ROOT, 'skills')
+const CANONICAL_MCP_URL = 'https://www.patchline.ai/api/mcp/v1'
+const EXPECTED_LOGO_SHA256 = '2BC766781446B23B7ADE62AA94CA4AD02B7FAC6DCC6E6C389A5917588015F7E3'
 
 // ──────────────────────────────────────────────────────────────────────────
 // Colors (matches tests/runners/deploy-and-verify.ts palette)
@@ -339,12 +345,128 @@ function checkMcpJson() {
 // Check 4: skills/*.md frontmatter + body sections
 // ──────────────────────────────────────────────────────────────────────────
 
+function checkCursorPluginJson() {
+  const issues: string[] = []
+  const name = '.cursor-plugin/plugin.json'
+
+  if (!fileExists(CURSOR_PLUGIN_JSON)) {
+    record(name, 'fail', [`missing file at ${CURSOR_PLUGIN_JSON}`])
+    return
+  }
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(readFile(CURSOR_PLUGIN_JSON))
+  } catch (e: any) {
+    record(name, 'fail', [`invalid JSON: ${e.message}`])
+    return
+  }
+
+  for (const key of ['name', 'description', 'version', 'author', 'logo', 'skills', 'mcpServers']) {
+    if (parsed[key] === undefined || parsed[key] === null || parsed[key] === '') {
+      issues.push(`missing required field: "${key}"`)
+    }
+  }
+  if (parsed.name !== 'aria') {
+    issues.push('plugin identifier must remain exactly "aria"')
+  }
+  if (!isKebabCase(parsed.name ?? '')) {
+    issues.push('"name" must be lowercase kebab-case')
+  }
+  if (parsed.logo !== 'assets/aria-mcp-icon.png') {
+    issues.push('"logo" must be "assets/aria-mcp-icon.png"')
+  }
+  if (parsed.skills !== './skills/') {
+    issues.push('"skills" must be "./skills/"')
+  }
+  if (parsed.mcpServers !== './mcp.json') {
+    issues.push('"mcpServers" must be "./mcp.json"')
+  }
+
+  record(name, issues.length === 0 ? 'pass' : 'fail', issues)
+}
+
 interface ParsedSkill {
   file: string
   skillName: string
   frontmatter: Record<string, any>
   body: string
   issues: string[]
+}
+
+function checkCrossClientBrandingContract() {
+  const issues: string[] = []
+  const name = 'cross-client branding contract'
+
+  try {
+    const claudePlugin = JSON.parse(readFile(PLUGIN_JSON))
+    const claudeMarketplace = JSON.parse(readFile(MARKETPLACE_JSON))
+    const claudeMcp = JSON.parse(readFile(MCP_JSON))
+    const cursorPlugin = JSON.parse(readFile(CURSOR_PLUGIN_JSON))
+    const cursorMcp = JSON.parse(readFile(CURSOR_MCP_JSON))
+    const packageJson = JSON.parse(readFile(path.join(PLUGIN_ROOT, 'package.json')))
+
+    if (claudePlugin.name !== 'aria') {
+      issues.push('Claude plugin identifier must remain exactly "aria"')
+    }
+    if (cursorPlugin.name !== 'aria') {
+      issues.push('Cursor plugin identifier must remain exactly "aria"')
+    }
+
+    const marketplacePlugin = claudeMarketplace.plugins?.find((entry: any) => entry.name === 'aria')
+    const versions = [
+      claudePlugin.version,
+      marketplacePlugin?.version,
+      cursorPlugin.version,
+      packageJson.version,
+    ]
+    if (versions.some((version) => typeof version !== 'string' || version.length === 0)) {
+      issues.push('all plugin/package version fields must be present')
+    } else if (new Set(versions).size !== 1) {
+      issues.push(`plugin/package versions must match; found ${versions.join(', ')}`)
+    }
+
+    const claudeServers = claudeMcp.mcpServers ?? {}
+    const claudeServerNames = Object.keys(claudeServers)
+    if (claudeServerNames.length !== 1 || claudeServerNames[0] !== 'aria') {
+      issues.push('Claude .mcp.json must contain exactly one server named "aria"')
+    }
+
+    const cursorServers = cursorMcp.mcpServers ?? {}
+    const cursorServerNames = Object.keys(cursorServers)
+    if (cursorServerNames.length !== 1 || cursorServerNames[0] !== 'Aria') {
+      issues.push('Cursor mcp.json must contain exactly one server named "Aria"')
+    }
+
+    const claudeUrl = claudeServers.aria?.url
+    const cursorUrl = cursorServers.Aria?.url
+    if (claudeUrl !== CANONICAL_MCP_URL) {
+      issues.push(`Claude MCP URL must be ${CANONICAL_MCP_URL}`)
+    }
+    if (cursorUrl !== CANONICAL_MCP_URL) {
+      issues.push(`Cursor MCP URL must be ${CANONICAL_MCP_URL}`)
+    }
+    if (claudeUrl !== cursorUrl) {
+      issues.push('Claude and Cursor MCP endpoints must match')
+    }
+
+    if (!fileExists(CURSOR_LOGO)) {
+      issues.push(`missing Cursor logo at ${CURSOR_LOGO}`)
+    } else {
+      const logoHash = crypto
+        .createHash('sha256')
+        .update(fs.readFileSync(CURSOR_LOGO))
+        .digest('hex')
+        .toUpperCase()
+      if (logoHash !== EXPECTED_LOGO_SHA256) {
+        issues.push(`Cursor logo SHA-256 mismatch: expected ${EXPECTED_LOGO_SHA256}, got ${logoHash}`)
+      }
+    }
+  } catch (e: any) {
+    issues.push(`unable to verify cross-client manifests: ${e.message}`)
+  }
+
+  record(name, issues.length === 0 ? 'pass' : 'fail', issues)
 }
 
 function checkSkills(): { skills: ParsedSkill[]; anyFail: boolean } {
@@ -644,6 +766,8 @@ function main() {
   checkPluginJson()
   checkMarketplaceJson()
   checkMcpJson()
+  checkCursorPluginJson()
+  checkCrossClientBrandingContract()
 
   section('Skills')
   const { skills } = checkSkills()

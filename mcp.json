@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "Aria": {
+      "url": "https://www.patchline.ai/api/mcp/v1"
+    }
+  }
+}

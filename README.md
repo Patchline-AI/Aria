@@ -2,7 +2,7 @@
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-D97757)](https://docs.claude.com/en/docs/claude-code/plugins)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0068FF)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-00E6E2)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.2-00E6E2)](./CHANGELOG.md)
 [![MCP](https://img.shields.io/badge/MCP-aria-002772)](https://www.patchline.ai/mcp)
 
 **Ship a music release end-to-end without leaving Claude Desktop, Cowork, or Claude Code.**
@@ -32,6 +32,21 @@ invoke a skill directly (`/aria:drop`, `/aria:link`,
 
 On Claude Desktop/Cowork, install the same plugin package through the app's
 plugin flow and use the same natural-language prompts.
+
+### Cursor
+
+Aria also ships as a native Cursor plugin. Its stable plugin identifier remains
+`aria`, while Cursor registers the MCP connection as **Aria** from the separate
+root `mcp.json`. The bundled Patchline logo is used by Cursor plugin and
+marketplace surfaces. Cursor controls the MCP connection-card chrome itself, so
+some builds may still render the generic chain icon even when the plugin logo is
+installed correctly.
+
+When upgrading from 0.2.1 or an older Claude-format install, remove the existing
+Aria plugin in Cursor's Customize view, install the current `Patchline-AI/aria`
+plugin, then run **Developer: Reload Window**. Confirm Settings > MCP contains
+exactly one entry named **Aria**; remove a separately configured lowercase
+`aria` entry rather than running both registrations.
 
 If you are iterating on the plugin itself and want Claude Desktop/Cowork to
 load your local working copy instead of the published `Patchline-AI/aria`
@@ -105,7 +120,7 @@ Patchline also ships a Telegram companion bot for always-on mobile execution: pa
 
 ## Extending Aria
 
-Aria is designed to be composable without exposing Patchline's full internal roadmap. If you want to contribute a skill, start with [CONTRIBUTING.md](./CONTRIBUTING.md). Each skill is a standalone moment (`drop`, `pitch`, `link`, `fans`, `operator`), MCP-grounded, with no shared phase state to maintain.
+Aria is designed to be composable without exposing Patchline's full internal roadmap. If you want to contribute a skill, start with [CONTRIBUTING.md](./CONTRIBUTING.md). Each skill is a standalone moment (`drop`, `link`, `fans`, `operator`), MCP-grounded, with no shared phase state to maintain.
 
 ## Links
 
