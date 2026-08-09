@@ -4,6 +4,22 @@ All notable changes to Aria by Patchline are documented here. Format follows [Ke
 
 ## [Unreleased]
 
+
+## [0.2.2] - 2026-08-08
+
+### Added
+- Added a native Cursor plugin manifest and a single display-facing `Aria` MCP registration at the canonical Patchline endpoint.
+- Bundled the approved Patchline logo for Cursor plugin and marketplace surfaces, pinned by its SHA-256 digest in validation.
+
+### Changed
+- Preserved the stable Claude plugin, MCP, and tool namespace identifier `aria`; Cursor uses a separate display-facing `Aria` server key.
+- Aligned the Claude manifest, Claude marketplace, Cursor manifest, and package versions at `0.2.2`.
+- Extended validation to fail on endpoint, name, version, server-count, or logo-byte drift across client packages.
+
+
+
+## [0.2.1] - 2026-06-19
+
 ### Removed
 - Removed the pitch skill while `create_pitch_link` is gated; pitch copy remains via `generate_pitch`, sharing via `create_asset_share`.
 
@@ -63,7 +79,9 @@ Initial public release.
 - First version published to the Claude Code plugin marketplace as `patchline-ai/aria`
 - Requires a Patchline AI account (free tier available)
 
-[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/Patchline-AI/aria/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/Patchline-AI/aria/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Patchline-AI/aria/compare/v0.1.3-alpha...v0.2.0
 [0.1.3-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.2-alpha...v0.1.3-alpha
 [0.1.2-alpha]: https://github.com/Patchline-AI/aria/compare/v0.1.1-alpha...v0.1.2-alpha

@@ -1,0 +1,23 @@
+{
+  "name": "aria",
+  "version": "0.2.2",
+  "description": "Aria by Patchline: music-release skills and the hosted Patchline MCP for catalog, release, audience, and market intelligence workflows.",
+  "author": {
+    "name": "Patchline AI"
+  },
+  "homepage": "https://patchline.ai",
+  "repository": "https://github.com/Patchline-AI/aria",
+  "license": "MIT",
+  "keywords": [
+    "music",
+    "artist",
+    "label",
+    "release",
+    "patchline",
+    "aria",
+    "mcp"
+  ],
+  "logo": "assets/aria-mcp-icon.png",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}

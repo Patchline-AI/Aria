@@ -58,7 +58,7 @@ Never ask the user for a JWT, Cognito token, or AWS credentials. The plugin does
 Two orthogonal version axes. Do not conflate them.
 
 1. **URL contract version** (`/api/mcp/v1`) — the MCP wire protocol Patchline exposes. Bumped only on a breaking change to tool schemas, metadata endpoints, or the OAuth proxy contract. Prior art: Stripe `/v1/`, GitHub `/v3/` — stable for years at a time. A `v2` only appears when we ship a parallel URL that cannot be served by the same code path as `v1`.
-2. **Plugin version** (`plugin/.claude-plugin/plugin.json#version`) — the SKILL.md authoring, prompts, and conventions. Bumped per Keep-a-Changelog rules for every user-visible plugin change. Today: `0.2.0` (the lean standalone "moment" skills; `0.1.x` was the retired 11-phase lifecycle). A plugin on `v1` of the URL can ship `1.x.x`, `2.x.x`, `3.x.x` freely — skills evolve independently of the MCP contract.
+2. **Plugin version** (`.claude-plugin/plugin.json#version`) — the SKILL.md authoring, prompts, and conventions. Bumped per Keep-a-Changelog rules for every user-visible plugin change. The authoritative current version is declared by the client manifests and package metadata; keep them aligned and do not hardcode a "today" version in prose. A plugin on `v1` of the URL can ship `1.x.x`, `2.x.x`, `3.x.x` freely — skills evolve independently of the MCP contract.
 
 The plugin is the authoritative client for the `v1` URL. If `/v1` ever breaks, we bump the URL (never reuse `/v1` for a breaking change) and ship a plugin major version that targets the new URL.
 

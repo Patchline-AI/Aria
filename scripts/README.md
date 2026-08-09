@@ -37,6 +37,10 @@ Parses and validates:
 
 Output is a per-file table with `pass / warn / fail` statuses. Exit 0 if all pass, exit 1 on any fail.
 
+The manifest pass also validates `.cursor-plugin/plugin.json` and root
+`mcp.json`, then enforces cross-client name, endpoint, version, server-count,
+and byte-exact logo-hash parity.
+
 ---
 
 ## `smoke-test.ts`
@@ -52,7 +56,7 @@ Runs six checks (the first three touch the network; the rest are local):
 1. **MCP endpoint reachable** — HTTP GET `https://www.patchline.ai/api/mcp/v1`. Expects 200/401/400/405 (server is alive). Connection refused or DNS failure is a fail.
 2. **RFC 9728 protected-resource metadata** — tries `/.well-known/oauth-protected-resource` and the scoped variant under the MCP path. Response must be JSON with a non-empty `resource` field and a non-empty `authorization_servers[]` array.
 3. **`allowed-tools` references resolve** — scans every `skills/**/SKILL.md` for `mcp__aria__<toolname>` entries, then calls `tools/list` against the live MCP (requires `PATCHLINE_MCP_TOKEN`). Missing tools are listed by (tool, referencing skill). If no token is set, this check `WARN`s and is skipped — not a fail.
-4. **Moment skills present + frontmatter valid** — confirms each of the five moment skills (`drop`, `pitch`, `link`, `fans`, `operator`) has a `SKILL.md` whose frontmatter parses and whose `name` matches its directory.
+4. **Moment skills present + frontmatter valid** — confirms each of the four current moment skills (`drop`, `link`, `fans`, `operator`) has a `SKILL.md` whose frontmatter parses and whose `name` matches its directory.
 5. **Public docs document the moment model** — asserts the README mentions `get started` and at least one moment skill name.
 6. **Vendor-neutral public copy** — scans public docs + skill instructions and fails on any leaked third-party vendor name.
 

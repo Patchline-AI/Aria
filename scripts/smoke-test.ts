@@ -52,8 +52,8 @@ const MCP_REACHABILITY_TIMEOUT_MS = 30_000
 const TOOL_PREFIX = 'mcp__aria__'
 const MCP_SERVER_NAME = 'aria'
 
-// The five standalone "moment" skills shipped in 0.2.0. No phases, no shared state.
-const MOMENT_SKILLS = ['drop', 'pitch', 'link', 'fans', 'operator'] as const
+// The four standalone "moment" skills in the current plugin. No phases, no shared state.
+const MOMENT_SKILLS = ['drop', 'link', 'fans', 'operator'] as const
 
 // ──────────────────────────────────────────────────────────────────────────
 // Colors (matches tests/runners/deploy-and-verify.ts palette)
