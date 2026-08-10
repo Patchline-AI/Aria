@@ -1,7 +1,7 @@
 {
   "name": "aria",
   "description": "Lean music-operator skills for the aria MCP: drop a track to your storefront, make smart links, and grow your fanbase — each one grounded, single-job action. Install once, reload plugins, then say 'get started'.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": {
     "name": "Patchline AI",
     "url": "https://patchline.ai"
@@ -10,7 +10,6 @@
   "repository": "https://github.com/Patchline-AI/aria",
   "license": "MIT",
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
   "keywords": [
     "music",
     "artist",

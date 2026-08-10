@@ -4,6 +4,15 @@ All notable changes to Aria by Patchline are documented here. Format follows [Ke
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-08-09
+
+### Fixed
+- Added Cursor's `displayName` field so the human-facing plugin label is `Aria` while the stable protocol identifier remains `aria`.
+- Changed the Cursor logo reference to the client-resolved `./assets/aria-mcp-icon.png` form.
+- Removed the redundant Claude manifest `mcpServers` pointer. Claude continues to auto-discover the root `.mcp.json`, while Cursor now imports exactly one client-native `Aria` registration instead of both Claude and Cursor declarations.
+- Strengthened validation to reject missing display branding, an unresolved logo path, or duplicate cross-client MCP declarations.
+
+
 
 ## [0.2.2] - 2026-08-08
 
@@ -79,7 +88,8 @@ Initial public release.
 - First version published to the Claude Code plugin marketplace as `patchline-ai/aria`
 - Requires a Patchline AI account (free tier available)
 
-[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/Patchline-AI/aria/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/Patchline-AI/aria/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/Patchline-AI/aria/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/Patchline-AI/aria/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Patchline-AI/aria/compare/v0.1.3-alpha...v0.2.0
