@@ -211,7 +211,6 @@ function checkPluginJson() {
     'version',
     'author',
     'skills',
-    'mcpServers',
     'keywords',
   ]
   for (const key of required) {
@@ -233,8 +232,10 @@ function checkPluginJson() {
   if (parsed.skills && typeof parsed.skills !== 'string') {
     issues.push('"skills" must be a string path (e.g. "./skills/")')
   }
-  if (parsed.mcpServers && typeof parsed.mcpServers !== 'string') {
-    issues.push('"mcpServers" must be a string path (e.g. "./.mcp.json")')
+  if (parsed.mcpServers !== undefined) {
+    issues.push(
+      'Claude plugin.json must not redeclare mcpServers; Claude auto-discovers root .mcp.json and Cursor otherwise creates a duplicate registration'
+    )
   }
 
   record(name, issues.length === 0 ? 'pass' : 'fail', issues)
@@ -362,7 +363,7 @@ function checkCursorPluginJson() {
     return
   }
 
-  for (const key of ['name', 'description', 'version', 'author', 'logo', 'skills', 'mcpServers']) {
+  for (const key of ['name', 'displayName', 'description', 'version', 'author', 'logo', 'skills', 'mcpServers']) {
     if (parsed[key] === undefined || parsed[key] === null || parsed[key] === '') {
       issues.push(`missing required field: "${key}"`)
     }
@@ -370,11 +371,14 @@ function checkCursorPluginJson() {
   if (parsed.name !== 'aria') {
     issues.push('plugin identifier must remain exactly "aria"')
   }
+  if (parsed.displayName !== 'Aria') {
+    issues.push('Cursor displayName must remain exactly "Aria"')
+  }
   if (!isKebabCase(parsed.name ?? '')) {
     issues.push('"name" must be lowercase kebab-case')
   }
-  if (parsed.logo !== 'assets/aria-mcp-icon.png') {
-    issues.push('"logo" must be "assets/aria-mcp-icon.png"')
+  if (parsed.logo !== './assets/aria-mcp-icon.png') {
+    issues.push('"logo" must be "./assets/aria-mcp-icon.png"')
   }
   if (parsed.skills !== './skills/') {
     issues.push('"skills" must be "./skills/"')
@@ -413,6 +417,12 @@ function checkCrossClientBrandingContract() {
       issues.push('Cursor plugin identifier must remain exactly "aria"')
     }
 
+    if (cursorPlugin.displayName !== 'Aria') {
+      issues.push('Cursor displayName must remain exactly "Aria"')
+    }
+    if (claudePlugin.mcpServers !== undefined) {
+      issues.push('Claude plugin.json must rely on root .mcp.json auto-discovery to avoid Cursor duplicate MCPs')
+    }
     const marketplacePlugin = claudeMarketplace.plugins?.find((entry: any) => entry.name === 'aria')
     const versions = [
       claudePlugin.version,
